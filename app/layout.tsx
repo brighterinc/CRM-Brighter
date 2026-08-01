@@ -30,7 +30,7 @@ const plexMono = IBM_Plex_Mono({
  * declaram apenas o próprio nome ("Entrar") e herdam o sufixo daqui.
  */
 export function generateMetadata(): Metadata {
-  const { name } = branding();
+  const { name, faviconUrl } = branding();
   return {
     title: {
       default: `${name} — atendimento e vendas por WhatsApp com agentes de IA`,
@@ -49,6 +49,8 @@ export function generateMetadata(): Metadata {
       "multi-tenant",
     ],
     robots: { index: false, follow: false },
+    // Sem APP_FAVICON_URL, preserva o favicon padrão do build (comportamento atual).
+    icons: faviconUrl ? { icon: faviconUrl } : undefined,
   };
 }
 

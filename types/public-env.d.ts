@@ -13,6 +13,9 @@ interface PublicEnv {
   /** Marca da instalação (white-label). Ver `lib/branding.ts`. */
   APP_NAME?: string;
   APP_LOGO_URL?: string;
+  APP_SUPPORT_EMAIL?: string;
+  APP_WEBSITE_URL?: string;
+  APP_FAVICON_URL?: string;
 }
 
 interface Window {

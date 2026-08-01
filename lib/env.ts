@@ -152,9 +152,16 @@ const schema = z.object({
   // Marca da instalação (white-label) — ver lib/branding.ts.
   // Sem prefixo NEXT_PUBLIC_ de propósito: essas seriam queimadas no bundle
   // durante o build da imagem, e o self-hoster roda uma imagem pré-buildada.
-  // O <PublicEnvScript/> injeta os valores em runtime.
+  // O <PublicEnvScript/> injeta os valores em runtime (exceto legalName/fromName/
+  // fromEmail, que só são usados no servidor — PDF LGPD e e-mail transacional).
   APP_NAME: z.string().optional().default(""),
   APP_LOGO_URL: z.string().optional().default(""),
+  APP_SUPPORT_EMAIL: z.string().optional().default(""),
+  APP_LEGAL_NAME: z.string().optional().default(""),
+  APP_WEBSITE_URL: z.string().optional().default(""),
+  APP_FROM_NAME: z.string().optional().default(""),
+  APP_FROM_EMAIL: z.string().optional().default(""),
+  APP_FAVICON_URL: z.string().optional().default(""),
 });
 
 let parsed = schema.safeParse(process.env);

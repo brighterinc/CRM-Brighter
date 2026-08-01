@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+import { branding } from "@/lib/branding";
 import { requireAuth, resolveActiveOrg } from "@/lib/auth/server";
 import { ROLE_RANK } from "@/lib/auth/types";
 import { Card } from "@/components/ui/card";
@@ -13,6 +14,7 @@ export default async function BillingPage() {
   if (!activeOrg || ROLE_RANK[activeOrg.role] < ROLE_RANK.admin) {
     redirect("/403");
   }
+  const { supportEmail } = branding();
   return (
     <div className="flex h-full flex-col gap-6 p-6">
       <header>
@@ -22,11 +24,18 @@ export default async function BillingPage() {
       <Card className="max-w-xl p-6">
         <h2 className="text-sm font-semibold">Em breve — Fase 2</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Billing entra na Fase 2 do roadmap. Para questões de pagamento, contate{" "}
-          <a className="underline" href="mailto:suporte@deskcomm.app">
-            suporte@deskcomm.app
-          </a>
-          .
+          Billing entra na Fase 2 do roadmap.{" "}
+          {supportEmail ? (
+            <>
+              Para questões de pagamento, contate{" "}
+              <a className="underline" href={`mailto:${supportEmail}`}>
+                {supportEmail}
+              </a>
+              .
+            </>
+          ) : (
+            "Para questões de pagamento, contate o suporte da sua instalação."
+          )}
         </p>
       </Card>
     </div>

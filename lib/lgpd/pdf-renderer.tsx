@@ -8,6 +8,7 @@
 import { Document, Page, StyleSheet, Text, View, renderToBuffer } from "@react-pdf/renderer";
 import React from "react";
 
+import { branding } from "@/lib/branding";
 import type { ExportPayload } from "./export-collector";
 
 const styles = StyleSheet.create({
@@ -84,6 +85,7 @@ function fmtMoney(cents: number | null | undefined, currency: string | null | un
 
 export function LgpdExportPdf({ data, unsignedWarning }: Props): React.ReactElement {
   const shortId = data.request_id.slice(0, 8);
+  const { name: appName } = branding();
 
   return (
     <Document>
@@ -274,7 +276,7 @@ export function LgpdExportPdf({ data, unsignedWarning }: Props): React.ReactElem
         {/* Footer */}
         <View style={styles.footer} fixed>
           <Text>
-            DeskcommCRM · Relatório LGPD Art. 18 II · DPO: contato via canal oficial
+            {appName} · Relatório LGPD Art. 18 II · DPO: contato via canal oficial
             do controlador · Validade do link de download conforme email recebido
           </Text>
         </View>

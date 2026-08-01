@@ -21,6 +21,33 @@ Reinicie a stack (`docker compose up -d`) e a marca vale em toda a interface: t�
 
 O `install.sh` pergunta o `APP_NAME` durante a instalação; pressionar Enter mantém o padrão.
 
+### Identidade de contato e e-mail
+
+Além de nome e logo, `.env` aceita mais seis variáveis — todas opcionais, todas com fallback seguro (nunca inventamos um endereço ou URL que não foi configurado):
+
+| Variável | Onde aparece | Visível no navegador? | Fallback |
+|---|---|---|---|
+| `APP_FAVICON_URL` | Ícone da aba do navegador | Sim | Favicon padrão do build |
+| `APP_SUPPORT_EMAIL` | Tela de billing, rodapés | Sim | Mensagem neutra, sem endereço |
+| `APP_WEBSITE_URL` | Reservado para uso futuro na UI | Sim | Nenhum |
+| `APP_LEGAL_NAME` | Rodapé do PDF de export LGPD, nome da organização em e-mails de LGPD | **Não** — só servidor | `APP_NAME` resolvido |
+| `APP_FROM_NAME` | Nome do remetente em e-mails transacionais | **Não** — só servidor | `APP_NAME` resolvido |
+| `APP_FROM_EMAIL` | Endereço do remetente em e-mails transacionais | **Não** — só servidor | Nenhum |
+
+"Visível no navegador" quer dizer: passa pelo `<PublicEnvScript/>` (`app/public-env-script.tsx`) e existe em `window.__PUBLIC_ENV__`, sem NEXT_PUBLIC_* — mesmo motivo do nome/logo (ver acima). `APP_LEGAL_NAME`, `APP_FROM_NAME` e `APP_FROM_EMAIL` só são lidos no servidor (PDF, e-mail) e não precisam sair dali.
+
+Todas as seis sobrevivem a `bash update.sh`, do mesmo jeito que `APP_NAME`/`APP_LOGO_URL` — é `.env`, não código.
+
+**E-mail transacional (convite, alerta de orçamento de IA, LGPD):**
+
+```bash
+RESEND_FROM_EMAIL="Minha Empresa <contato@minhaempresa.com>"
+```
+
+Tem prioridade sobre `APP_FROM_NAME`/`APP_FROM_EMAIL` quando presente. Na ausência de `RESEND_FROM_EMAIL`, o remetente é montado a partir de `APP_FROM_NAME`/`APP_FROM_EMAIL`. **O fallback nunca é um domínio nosso** (`deskcomm.app`) — uma instalação white-label não tem autorização para enviar por ele no Resend dela. Se nenhuma das três estiver configurada, o envio é rejeitado pelo Resend (mesma degradação graciosa de quando `RESEND_API_KEY` está ausente — não derruba o fluxo que disparou o e-mail).
+
+O assunto e o corpo do convite, e o assunto do alerta de orçamento de IA, usam `APP_NAME` resolvido — não há mais "Deskcomm" fixo nesses textos.
+
 ### Por que isso é configuração, e não uma edição de código
 
 Trocar a marca editando os arquivos-fonte funciona **uma vez**. No próximo `bash update.sh`, a imagem nova sobrescreve o patch e a marca do seu cliente volta a ser a nossa — normalmente sem ninguém perceber, até o cliente ver.
@@ -33,7 +60,8 @@ Sendo direto, para você não descobrir na frente do cliente:
 
 - **Cores, fontes e tema** não são configuráveis por variável. Exigem alterar o design system (`app/globals.css` e os tokens), e essa alteração **é** um patch que se perde no update.
 - **A marca é por instalação, não por organização.** Uma instalação com várias organizações mostra a mesma marca para todas. Se cada cliente precisa da própria marca, use uma instalação por cliente (ver abaixo) — que também é o modelo que rende melhor.
-- **Textos e e-mails transacionais** seguem o padrão do produto.
+- **E-mails de convite, alerta de orçamento de IA e LGPD** (gerados por este app) já usam `APP_NAME`/`APP_LEGAL_NAME`/`APP_FROM_NAME`/`APP_FROM_EMAIL` — ver seção acima.
+- **E-mails de recuperação de senha e confirmação de cadastro são gerados pelo Supabase Auth**, não por este app (`supabase/templates/recovery.html` e `confirmation.html`). Esses templates são HTML estático — não executam TypeScript nem leem `.env` — então o texto é neutro por padrão ("sua conta na plataforma"). Se seu cliente precisa do nome dele nesses dois e-mails específicos, edite o template no painel do Supabase (Authentication → Email Templates) daquele projeto; não há caminho automático porque o Supabase não expõe as mesmas variáveis de runtime que `lib/branding.ts` usa.
 
 ---
 

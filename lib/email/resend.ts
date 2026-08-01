@@ -8,6 +8,8 @@
  */
 import { Resend } from "resend";
 
+import { branding } from "@/lib/branding";
+
 interface SendArgs {
   to: string | string[];
   subject: string;
@@ -34,8 +36,17 @@ function getClient(): Resend | null {
   return _client;
 }
 
+/**
+ * RESEND_FROM_EMAIL tem prioridade (controle direto do operador). Na ausência,
+ * monta o remetente pela marca da instalação — nunca cai num domínio nosso
+ * (`deskcomm.app`), que a instalação white-label não teria autorização pra
+ * usar no Resend dela. Sem `branding().fromEmail` configurado, Resend rejeita
+ * o envio (degrada como já degrada hoje sem RESEND_API_KEY).
+ */
 function fromAddress(): string {
-  return process.env.RESEND_FROM_EMAIL || "Deskcomm <noreply@deskcomm.app>";
+  if (process.env.RESEND_FROM_EMAIL) return process.env.RESEND_FROM_EMAIL;
+  const { fromName, fromEmail } = branding();
+  return fromEmail ? `${fromName} <${fromEmail}>` : fromName;
 }
 
 export async function sendEmail(args: SendArgs): Promise<SendResult> {

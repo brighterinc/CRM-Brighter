@@ -12,6 +12,7 @@
 
 import * as Sentry from "@sentry/nextjs";
 
+import { branding } from "@/lib/branding";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail } from "@/lib/email/resend";
 import { audit } from "@/lib/audit";
@@ -98,7 +99,7 @@ export async function triggerSlaAlarm(
   } else {
     try {
       const shortId = request.id.slice(0, 8);
-      const orgName = organizationName ?? "DeskcommCRM";
+      const orgName = organizationName ?? branding().legalName;
       const appUrl = env.NEXT_PUBLIC_APP_URL;
       const requestUrl = `${appUrl}/app/lgpd/requests/${request.id}`;
 

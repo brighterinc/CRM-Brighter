@@ -24,8 +24,13 @@ export async function PublicEnvScript() {
     SENTRY_DSN: env.SENTRY_DSN,
     // Marca da instalação (white-label): os client components (Sidebar, AdminSidebar)
     // leem daqui. Não são segredo — já aparecem na tela. Ver lib/branding.ts.
+    // legalName/fromName/fromEmail ficam de fora de propósito: só usados em
+    // PDF/e-mail gerados no servidor, nunca lidos pelo navegador.
     APP_NAME: env.APP_NAME,
     APP_LOGO_URL: env.APP_LOGO_URL,
+    APP_SUPPORT_EMAIL: env.APP_SUPPORT_EMAIL,
+    APP_WEBSITE_URL: env.APP_WEBSITE_URL,
+    APP_FAVICON_URL: env.APP_FAVICON_URL,
   })
     // Evita quebrar o </script> se algum valor contiver a sequência.
     .replace(/</g, "\\u003c");

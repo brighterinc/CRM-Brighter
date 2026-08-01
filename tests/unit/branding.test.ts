@@ -8,10 +8,16 @@ const RAIZ = process.cwd();
 
 describe("resolveBranding", () => {
   it("cai no padrão quando não há marca configurada", () => {
-    expect(resolveBranding(undefined, undefined)).toEqual({
+    expect(resolveBranding({})).toEqual({
       name: DEFAULT_APP_NAME,
       logoUrl: null,
       initial: "D",
+      supportEmail: null,
+      legalName: DEFAULT_APP_NAME,
+      websiteUrl: null,
+      fromName: DEFAULT_APP_NAME,
+      fromEmail: null,
+      faviconUrl: null,
     });
   });
 
@@ -19,20 +25,38 @@ describe("resolveBranding", () => {
     // `install.sh` grava a chave declarada mesmo quando o operador não responde
     // (APP_NAME=), então "vazio" chega como string — não como undefined. Tratar
     // isso como marca válida deixaria a interface sem nome nenhum.
-    expect(resolveBranding("", "").name).toBe(DEFAULT_APP_NAME);
-    expect(resolveBranding("   ", "   ").name).toBe(DEFAULT_APP_NAME);
-    expect(resolveBranding("   ", "   ").logoUrl).toBeNull();
+    const empty = resolveBranding({
+      name: "",
+      logoUrl: "",
+      supportEmail: "",
+      legalName: "  ",
+      websiteUrl: "   ",
+      fromName: "",
+      fromEmail: "  ",
+      faviconUrl: "",
+    });
+    expect(empty.name).toBe(DEFAULT_APP_NAME);
+    expect(empty.logoUrl).toBeNull();
+    expect(empty.supportEmail).toBeNull();
+    expect(empty.legalName).toBe(DEFAULT_APP_NAME);
+    expect(empty.websiteUrl).toBeNull();
+    expect(empty.fromName).toBe(DEFAULT_APP_NAME);
+    expect(empty.fromEmail).toBeNull();
+    expect(empty.faviconUrl).toBeNull();
   });
 
   it("usa a marca configurada e deriva a inicial", () => {
-    const b = resolveBranding("  Vendas Turbo  ", "  https://cdn.exemplo.com/logo.svg  ");
+    const b = resolveBranding({
+      name: "  Vendas Turbo  ",
+      logoUrl: "  https://cdn.exemplo.com/logo.svg  ",
+    });
     expect(b.name).toBe("Vendas Turbo");
     expect(b.logoUrl).toBe("https://cdn.exemplo.com/logo.svg");
     expect(b.initial).toBe("V");
   });
 
   it("mantém o nome mas dispensa o logo quando só o nome é configurado", () => {
-    const b = resolveBranding("Acme CRM", undefined);
+    const b = resolveBranding({ name: "Acme CRM" });
     expect(b.name).toBe("Acme CRM");
     expect(b.logoUrl).toBeNull();
   });
@@ -40,8 +64,40 @@ describe("resolveBranding", () => {
   it("não parte code point ao derivar a inicial", () => {
     // `[0]` cru devolveria metade do par substituto e renderizaria caractere
     // inválido na sidebar recolhida.
-    expect(resolveBranding("🚀 Foguete", null).initial).toBe("🚀");
-    expect(resolveBranding("Ótimo CRM", null).initial).toBe("Ó");
+    expect(resolveBranding({ name: "🚀 Foguete" }).initial).toBe("🚀");
+    expect(resolveBranding({ name: "Ótimo CRM" }).initial).toBe("Ó");
+  });
+
+  it("resolve os campos de contato quando configurados", () => {
+    const b = resolveBranding({
+      name: "Acme CRM",
+      supportEmail: "  suporte@acme.com.br  ",
+      legalName: "  Acme Soluções Ltda  ",
+      websiteUrl: "  https://acme.com.br  ",
+      fromName: "  Acme  ",
+      fromEmail: "  contato@acme.com.br  ",
+      faviconUrl: "  https://cdn.acme.com.br/favicon.ico  ",
+    });
+    expect(b.supportEmail).toBe("suporte@acme.com.br");
+    expect(b.legalName).toBe("Acme Soluções Ltda");
+    expect(b.websiteUrl).toBe("https://acme.com.br");
+    expect(b.fromName).toBe("Acme");
+    expect(b.fromEmail).toBe("contato@acme.com.br");
+    expect(b.faviconUrl).toBe("https://cdn.acme.com.br/favicon.ico");
+  });
+
+  it("legalName e fromName caem no nome resolvido quando ausentes", () => {
+    const b = resolveBranding({ name: "Vendas Turbo" });
+    expect(b.legalName).toBe("Vendas Turbo");
+    expect(b.fromName).toBe("Vendas Turbo");
+  });
+
+  it("supportEmail, websiteUrl, fromEmail e faviconUrl nunca são inventados", () => {
+    const b = resolveBranding({ name: "Vendas Turbo" });
+    expect(b.supportEmail).toBeNull();
+    expect(b.websiteUrl).toBeNull();
+    expect(b.fromEmail).toBeNull();
+    expect(b.faviconUrl).toBeNull();
   });
 });
 
@@ -59,16 +115,27 @@ describe("guarda de white-label (self-host)", () => {
     // roda uma imagem PRÉ-BUILDADA: a marca dele nunca apareceria. O defeito
     // passaria em typecheck, lint e em toda a suíte, funcionaria em dev e na
     // Vercel, e falharia apenas na VPS de quem a feature existe para servir.
-    expect(branding).not.toMatch(/NEXT_PUBLIC_APP_(NAME|LOGO_URL)/);
-    expect(publicEnvScript).not.toMatch(/NEXT_PUBLIC_APP_(NAME|LOGO_URL)/);
+    expect(branding).not.toMatch(/NEXT_PUBLIC_APP_/);
+    expect(publicEnvScript).not.toMatch(/NEXT_PUBLIC_APP_/);
   });
 
   it("injeta a marca em runtime pelo PublicEnvScript", () => {
-    // Sem estas duas chaves no payload, os client components (Sidebar,
-    // AdminSidebar) caem no padrão e só a marca do servidor muda — a instalação
-    // ficaria com o nome do revendedor no título da aba e o nosso na sidebar.
+    // Sem estas chaves no payload, os client components (Sidebar, AdminSidebar)
+    // caem no padrão e só a marca do servidor muda — a instalação ficaria com o
+    // nome do revendedor no título da aba e o nosso na sidebar.
     expect(publicEnvScript).toMatch(/APP_NAME:\s*env\.APP_NAME/);
     expect(publicEnvScript).toMatch(/APP_LOGO_URL:\s*env\.APP_LOGO_URL/);
+    expect(publicEnvScript).toMatch(/APP_SUPPORT_EMAIL:\s*env\.APP_SUPPORT_EMAIL/);
+    expect(publicEnvScript).toMatch(/APP_WEBSITE_URL:\s*env\.APP_WEBSITE_URL/);
+    expect(publicEnvScript).toMatch(/APP_FAVICON_URL:\s*env\.APP_FAVICON_URL/);
+  });
+
+  it("nunca expõe legalName/fromName/fromEmail ao navegador", () => {
+    // Esses só existem em PDF/e-mail gerados no servidor — não são segredo, mas
+    // também não têm por que trafegar até o browser.
+    expect(publicEnvScript).not.toMatch(/APP_LEGAL_NAME/);
+    expect(publicEnvScript).not.toMatch(/APP_FROM_NAME/);
+    expect(publicEnvScript).not.toMatch(/APP_FROM_EMAIL/);
   });
 
   it("a marca não voltou a ser hardcoded na interface", () => {
