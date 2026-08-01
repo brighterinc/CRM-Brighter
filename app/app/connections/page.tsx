@@ -3,11 +3,13 @@ import { redirect } from "next/navigation";
 import { requireAuth, resolveActiveOrg } from "@/lib/auth/server";
 import { ROLE_RANK } from "@/lib/auth/types";
 import { ConnectionsClient } from "@/components/connections/ConnectionsClient";
+import { requireModule } from "@/lib/modules/guard";
 
 export const dynamic = "force-dynamic";
 
 export default async function ConnectionsPage() {
   const user = await requireAuth();
+  requireModule("channel.whatsapp");
   const activeOrg = await resolveActiveOrg(user);
   if (!activeOrg) redirect("/app");
   if (!user.is_platform_admin && ROLE_RANK[activeOrg.role] < ROLE_RANK.admin) {

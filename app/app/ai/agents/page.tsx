@@ -4,6 +4,7 @@ import { requireAuth, resolveActiveOrg } from "@/lib/auth/server";
 import { ROLE_RANK } from "@/lib/auth/types";
 import { createClient } from "@/lib/supabase/server";
 import type { AgentRow } from "@/hooks/ai/useAgent";
+import { requireModule } from "@/lib/modules/guard";
 import { AgentsList } from "./_components/AgentsList";
 
 export const dynamic = "force-dynamic";
@@ -13,6 +14,7 @@ const AGENT_COLUMNS =
 
 export default async function AgentsListPage() {
   const user = await requireAuth();
+  requireModule("ai.agents");
   const activeOrg = await resolveActiveOrg(user);
   if (!activeOrg) redirect("/app");
   if (ROLE_RANK[activeOrg.role] < ROLE_RANK.manager) {

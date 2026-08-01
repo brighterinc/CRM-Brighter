@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { isMfaEnrolled, loadAuthUser, requiresMfa, resolveActiveOrg } from "@/lib/auth/server";
 import { DEFAULT_VISIBILITY_MODE, type VisibilityMode } from "@/lib/auth/types";
 import { AuthProvider } from "@/hooks/auth/AuthProvider";
+import { getEnabledModules } from "@/lib/modules/runtime";
 import { AppShell } from "./_components/AppShell";
 import { MfaEnrollGate } from "@/components/auth/MfaEnrollGate";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -69,7 +70,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   const enrolled = await isMfaEnrolled();
   const needsMfaGate = requiresMfa(activeOrg?.role, user.is_platform_admin);
-  const shell = <AppShell sidebarCollapsed={collapsed}>{children}</AppShell>;
+  // Módulos são resolvidos server-side (env var nunca lida no bundle client) e
+  // passados como prop até a Sidebar — ver lib/modules/runtime.ts.
+  const enabledModuleIds = getEnabledModules().map((m) => m.id);
+  const shell = (
+    <AppShell sidebarCollapsed={collapsed} enabledModuleIds={enabledModuleIds}>
+      {children}
+    </AppShell>
+  );
 
   return (
     <AuthProvider user={user} activeOrg={activeOrg}>

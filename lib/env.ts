@@ -162,6 +162,14 @@ const schema = z.object({
   APP_FROM_NAME: z.string().optional().default(""),
   APP_FROM_EMAIL: z.string().optional().default(""),
   APP_FAVICON_URL: z.string().optional().default(""),
+
+  // Brighter Module Engine — plano de implantação White Label e overrides de
+  // módulo. Strings cruas de propósito: o fallback (ausente/inválido → plano
+  // mais permissivo) e o parsing de lista vivem em lib/modules/resolver.ts
+  // (funções puras, testáveis sem tocar este singleton). Ver docs/modules/module-engine.md.
+  DEPLOYMENT_PLAN: z.string().optional().default(""),
+  ENABLED_MODULES: z.string().optional().default(""),
+  DISABLED_MODULES: z.string().optional().default(""),
 });
 
 let parsed = schema.safeParse(process.env);

@@ -64,6 +64,12 @@ const LINKS: SettingsLink[] = [
   },
   { href: "/app/audit", title: "Audit Log", description: "Histórico de ações.", managerOnly: true },
   {
+    href: "/app/settings/modules",
+    title: "Módulos",
+    description: "Recursos disponíveis nesta instalação e plano de implantação.",
+    adminOnly: true,
+  },
+  {
     href: "/app/settings/billing",
     title: "Billing",
     description: "Planos e cobrança (em breve).",
