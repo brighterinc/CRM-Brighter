@@ -143,6 +143,29 @@ usuário. Não provisiona nada; é um espelho do que a própria instalação já
 | J8.7 | Atendente (role agent/manager) tenta acessar `/app/settings/deployment` | bloqueado (`adminOnly`), mesmo padrão das demais telas de Configurações |
 | J8.8 | Link "Implantação" na lista de Configurações | aparece só para admin, com a descrição correta |
 
+## J9 — Configurações › Operação (Tenant Engine) `[P2]`
+
+Contexto do código: tela somente leitura, admin-only
+(`app/app/settings/operacao/page.tsx`), acessível por `/app/settings` →
+"Operação". Renderiza `getCurrentInstallationTenant()`
+(`lib/tenants/current-installation.ts`) + `evaluateTenantReadiness()`
+(`lib/tenants/readiness.ts`) — mesmo padrão da tela de Implantação (J8):
+espelho do estado atual da instalação, nunca um formulário. `[P2]` porque é
+uma tela de diagnóstico administrativo interno, não um caminho do
+onboarding/rotina diária do atendente.
+
+| # | Caso | Expectativa |
+|---|------|-------------|
+| J9.1 | Admin abre Configurações → Operação | tela carrega sem erro com cliente/slug/domínio/plano da instalação atual |
+| J9.2 | Score de prontidão | mostra `readiness.score`/100 e separa claramente blockers, avisos e itens concluídos |
+| J9.3 | Logo ausente | aparece como aviso (warning), nunca como bloqueio — não derruba `ready` |
+| J9.4 | Seção de módulos | lista bate com `/app/settings/modules` e `/app/settings/deployment` (mesma fonte, `getEnabledModules()`) |
+| J9.5 | Seção Supabase | mostra só `projectRef`/`projectUrl` públicos — nunca anon key nem service role |
+| J9.6 | Bloco "Export seguro (JSON)" | JSON exibido nunca contém valor de segredo, mesmo com `SUPABASE_SERVICE_ROLE_KEY` listada como NOME de variável pendente no manifesto |
+| J9.7 | Atendente (role agent/manager) tenta acessar `/app/settings/operacao` | bloqueado (`adminOnly`), mesmo padrão das demais telas de Configurações |
+| J9.8 | Links "Implantação" e "Módulos" na tela | levam pras telas certas |
+| J9.9 | Link "Operação" na lista de Configurações | aparece só para admin, com a descrição correta |
+
 ---
 
 ## Achados do mapeamento (pré-execução) — candidatos a correção

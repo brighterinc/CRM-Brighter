@@ -76,6 +76,12 @@ const LINKS: SettingsLink[] = [
     adminOnly: true,
   },
   {
+    href: "/app/settings/operacao",
+    title: "Operação",
+    description: "Prontidão comercial e técnica desta instalação — módulos, infraestrutura e domínio.",
+    adminOnly: true,
+  },
+  {
     href: "/app/settings/billing",
     title: "Billing",
     description: "Planos e cobrança (em breve).",

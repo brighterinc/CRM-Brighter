@@ -8,6 +8,7 @@ import { branding } from "@/lib/branding";
 import { env } from "@/lib/env";
 import { generateDeploymentManifest, type DeploymentPlan, type ChecklistItem } from "@/lib/deployment";
 import { getDeploymentPlan, getEnabledModules } from "@/lib/modules/runtime";
+import { deriveInstallDomain, deriveInstallSlug } from "@/lib/tenants/current-installation";
 
 export const dynamic = "force-dynamic";
 
@@ -56,25 +57,6 @@ const CATEGORY_LABEL: Record<string, string> = {
   ai: "Inteligência artificial",
   email: "E-mail",
 };
-
-/** Deriva um slug legível do host de `NEXT_PUBLIC_APP_URL` — só pra exibição, não é a fonte de verdade de organização. */
-function deriveInstallSlug(appUrl: string): string {
-  try {
-    const hostname = new URL(appUrl).hostname.toLowerCase();
-    const slug = hostname.replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-    return slug.length > 0 ? slug : "instalacao";
-  } catch {
-    return "instalacao";
-  }
-}
-
-function deriveInstallDomain(appUrl: string): string {
-  try {
-    return new URL(appUrl).hostname;
-  } catch {
-    return appUrl;
-  }
-}
 
 function groupChecklistByCategory(items: ChecklistItem[]): [string, ChecklistItem[]][] {
   const groups = new Map<string, ChecklistItem[]>();
