@@ -122,6 +122,27 @@ Andar por TODAS as rotas navegáveis logado como admin e como agent: settings, c
 LGPD anonymize, /admin (platform), error pages (403/503/not-found), estados vazios.
 Critério: nenhuma tela quebra, nenhum stack trace, nenhum texto de erro cru.
 
+## J8 — Configurações › Implantação (Deployment Engine) `[P1]`
+
+Contexto do código: tela somente leitura, admin-only
+(`app/app/settings/deployment/page.tsx`), acessível por `/app/settings` →
+"Implantação". Renderiza `generateDeploymentManifest()`
+(`lib/deployment/manifest.ts`) a partir do estado atual do Module Engine
+(`lib/modules/runtime.ts`: `getDeploymentPlan()`, `getEnabledModules()`) e de
+`lib/branding.ts` — não de um `DeploymentRequest` arbitrário digitado pelo
+usuário. Não provisiona nada; é um espelho do que a própria instalação já é.
+
+| # | Caso | Expectativa |
+|---|------|-------------|
+| J8.1 | Admin abre Configurações → Implantação | tela carrega com plano atual (`DEPLOYMENT_PLAN` da instalação) e target recomendado pelo perfil |
+| J8.2 | Seção de módulos habilitados | lista bate com `/app/settings/modules` (mesma fonte, `getEnabledModules()`) — sem divergência entre as duas telas |
+| J8.3 | Seção de infraestrutura | flags (banco, auth, storage, Redis, worker, WhatsApp, IA, e-mail) coerentes com os módulos habilitados e com o perfil do plano (ex.: Dedicated mostra VPS/Docker/proxy obrigatórios) |
+| J8.4 | Seção de variáveis de ambiente | mostra só NOMES (nunca valor de segredo), separadas em obrigatórias/opcionais |
+| J8.5 | Checklist de instalação | itens condicionais aparecem certo: WAHA só se WhatsApp habilitado, chave de IA só se módulo de IA habilitado, VPS/Redis só em Dedicated |
+| J8.6 | Warnings/blockers | instalação saudável mostra zero blockers; se a combinação módulo×perfil divergir (infra proibida exigida), warning aparece com linguagem de operador, não stack trace |
+| J8.7 | Atendente (role agent/manager) tenta acessar `/app/settings/deployment` | bloqueado (`adminOnly`), mesmo padrão das demais telas de Configurações |
+| J8.8 | Link "Implantação" na lista de Configurações | aparece só para admin, com a descrição correta |
+
 ---
 
 ## Achados do mapeamento (pré-execução) — candidatos a correção

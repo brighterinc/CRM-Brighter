@@ -82,8 +82,10 @@ Detalham schema SQL e payloads exatos. **Consulte antes de modelar qualquer cois
 | [`research/reference-synthesis.md`](research/reference-synthesis.md) | Arquitetura herdada da referência WAHA |
 | [`research/followup-reference-mining.md`](research/followup-reference-mining.md) | Pesquisa do motor de follow-up |
 | [`threat-model.md`](threat-model.md) | **Superfície de ataque real do self-host** |
+| [`architecture/brighter-platform.md`](architecture/brighter-platform.md) | **Brighter Platform Architecture** — mapa entre as fundações White Label Runtime → Module Engine → Deployment Engine → (futuro) AI Engine → (futuro) Outreach & AI Cadence Engine, planos comerciais Lite/Pro/Dedicated |
 | [`modules/module-engine.md`](modules/module-engine.md) | Module Engine — catálogo tipado de módulos, planos de implantação (Lite/Pro/Dedicated), regras de resolução |
 | [`modules/campaigns-and-cadences.md`](modules/campaigns-and-cadences.md) | Spec futura de `automation.campaigns` (envio em massa e cadências) — **não implementado ainda** |
+| [`deployment/deployment-engine.md`](deployment/deployment-engine.md) | **Deployment Engine** — transforma config comercial (plano/módulos/marca/domínio) em manifesto técnico validado: infra, env vars (só nomes), blockers/warnings, checklist. Não provisiona nada |
 
 ## 5. Design system
 

@@ -70,6 +70,12 @@ const LINKS: SettingsLink[] = [
     adminOnly: true,
   },
   {
+    href: "/app/settings/deployment",
+    title: "Implantação",
+    description: "Manifesto técnico desta instalação: infraestrutura, variáveis e checklist.",
+    adminOnly: true,
+  },
+  {
     href: "/app/settings/billing",
     title: "Billing",
     description: "Planos e cobrança (em breve).",
