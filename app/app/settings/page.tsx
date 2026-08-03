@@ -94,6 +94,12 @@ const LINKS: SettingsLink[] = [
     adminOnly: true,
   },
   {
+    href: "/app/settings/monitoramento",
+    title: "Monitoramento",
+    description: "Saúde da instalação, checks, incidentes e ação recomendada — somente leitura.",
+    adminOnly: true,
+  },
+  {
     href: "/app/settings/billing",
     title: "Billing",
     description: "Planos e cobrança (em breve).",

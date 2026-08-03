@@ -191,6 +191,31 @@ provisionar — só texto "Simulação disponível via CLI".
 | J10.9 | Link "Provisionamento" na lista de Configurações | aparece só para admin, com a descrição correta |
 | J10.10 | Texto "Simulação disponível via CLI" | presente; nenhum botão de ação real de provisionar existe na tela |
 
+## J11 — Configurações › Monitoramento (Monitoring Engine) `[P1]`
+
+Contexto do código: tela somente leitura, admin-only
+(`app/app/settings/monitoramento/page.tsx`), acessível por `/app/settings`
+→ "Monitoramento". Renderiza `simulateMonitoringRun()`
+(`lib/monitoring/evaluator.ts`) sobre a `Installation` da instalação atual
+(`getCurrentInstallationTenant()` + `InMemoryInstallationRepository.createInstallation`)
+— mesmo padrão de espelho do estado atual das telas J8/J9/J10, nunca um
+formulário. `[P1]`, não `[P0]`: é uma tela de diagnóstico administrativo
+interno, mas — diferente de J9/J10 — expõe saúde/incidentes que um admin
+pode consultar com mais frequência que as demais telas de fundação. Não
+tem botão de executar check — só texto "Simulação disponível via CLI".
+
+| # | Caso | Expectativa |
+|---|------|-------------|
+| J11.1 | Admin abre Configurações → Monitoramento | tela carrega sem erro com instalação/plano/saúde geral/score |
+| J11.2 | Cenário saudável (padrão da tela) | `overallHealth: "healthy"`, score 100, zero blockers/warnings, zero incidentes |
+| J11.3 | Checks aplicáveis | lista bate `resolveApplicableMonitoringChecks` — nenhum check de Redis/worker/WhatsApp aparece se a instalação atual não exige essa infra/módulo |
+| J11.4 | Tabela de incidentes vazia | mostra "Nenhum incidente em aberto." em vez de tabela vazia sem contexto |
+| J11.5 | Categorias/módulos afetados | vazio quando saudável; populado quando algum check falha (validado via CLI `--scenario critical`, não nesta tela que só mostra o estado atual) |
+| J11.6 | Atendente (role agent/manager) tenta acessar `/app/settings/monitoramento` | bloqueado (`adminOnly`), mesmo padrão das demais telas de Configurações |
+| J11.7 | Links "Control Plane", "Provisionamento", "Operação", "Implantação" e "Módulos" na tela | levam pras telas certas |
+| J11.8 | Link "Monitoramento" na lista de Configurações | aparece só para admin, com a descrição correta |
+| J11.9 | Texto "Simulação disponível via CLI" | presente; nenhum botão de ação real de executar check existe na tela |
+
 ---
 
 ## Achados do mapeamento (pré-execução) — candidatos a correção

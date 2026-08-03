@@ -82,7 +82,7 @@ Detalham schema SQL e payloads exatos. **Consulte antes de modelar qualquer cois
 | [`research/reference-synthesis.md`](research/reference-synthesis.md) | Arquitetura herdada da referência WAHA |
 | [`research/followup-reference-mining.md`](research/followup-reference-mining.md) | Pesquisa do motor de follow-up |
 | [`threat-model.md`](threat-model.md) | **Superfície de ataque real do self-host** |
-| [`architecture/brighter-platform.md`](architecture/brighter-platform.md) | **Brighter Platform Architecture** — mapa entre as fundações White Label Runtime → Module Engine → Deployment Engine → Tenant Engine → Provisioning Engine → Control Plane → (futuro) AI Engine / Outreach Engine, planos comerciais Lite/Pro/Dedicated |
+| [`architecture/brighter-platform.md`](architecture/brighter-platform.md) | **Brighter Platform Architecture** — mapa entre as fundações White Label Runtime → Module Engine → Deployment Engine → Tenant Engine → Provisioning Engine → Control Plane → Monitoring Engine → (futuro) Outreach & AI Cadence Engine, planos comerciais Lite/Pro/Dedicated |
 | [`modules/module-engine.md`](modules/module-engine.md) | Module Engine — catálogo tipado de módulos, planos de implantação (Lite/Pro/Dedicated), regras de resolução |
 | [`modules/campaigns-and-cadences.md`](modules/campaigns-and-cadences.md) | Spec futura de `automation.campaigns` (envio em massa e cadências) — **não implementado ainda** |
 | [`deployment/deployment-engine.md`](deployment/deployment-engine.md) | **Deployment Engine** — transforma config comercial (plano/módulos/marca/domínio) em manifesto técnico validado: infra, env vars (só nomes), blockers/warnings, checklist. Não provisiona nada |
@@ -94,6 +94,10 @@ Detalham schema SQL e payloads exatos. **Consulte antes de modelar qualquer cois
 | [`control-plane/control-plane.md`](control-plane/control-plane.md) | **Control Plane** — agrega TODAS as instalações White Label da Brighter (`Installation` = `Tenant` + `DeploymentManifest` + `ProvisioningSummary` + branding + módulos), vocabulário próprio de status, repositório in-memory, filtros, resumo agregado. Sem persistência real |
 | [`control-plane/lifecycle.md`](control-plane/lifecycle.md) | Ciclo de vida de uma `Installation` — estados e transições de `InstallationStatus`/`CommercialStatus`/`TechnicalStatus` |
 | [`control-plane/status.md`](control-plane/status.md) | Catálogo de referência rápida dos três vocabulários de status e seus metadados (label/descrição/categoria) |
+| [`monitoring/monitoring-engine.md`](monitoring/monitoring-engine.md) | **Monitoring Engine** — representa, calcula e resume a saúde operacional de cada instalação a partir do `Installation` da Control Plane: catálogo de ~37 checks, motor de avaliação (saúde geral, score, blockers/warnings), incidentes derivados, adaptadores fake/noop, simulação. Sem check real |
+| [`monitoring/monitoring-lifecycle.md`](monitoring/monitoring-lifecycle.md) | Estados de um `MonitoringSnapshot`/`MonitoringCheckStatus`, regra de `overallHealth` e os 13 cenários de `simulateMonitoringRun` |
+| [`monitoring/incidents.md`](monitoring/incidents.md) | Ciclo de vida de um `MonitoringIncident` — derivação, deduplicação e transições open/acknowledged/resolved/reopened |
+| [`monitoring/check-catalog.md`](monitoring/check-catalog.md) | Tabela completa dos ~37 checks do catálogo — plano, módulos/infra exigidos, severidade, cadência |
 
 ## 5. Design system
 

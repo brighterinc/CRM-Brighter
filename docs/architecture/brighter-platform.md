@@ -61,7 +61,7 @@ last_updated: 2026-08-02
 └─────────────────────────────────────────────────────────────────┘
                               ↓ agregado por
 ┌─────────────────────────────────────────────────────────────────┐
-│  Control Plane                  (atual — Foundation v1)         │
+│  Control Plane                  (concluído — Foundation v1)     │
 │  agrega TODAS as instalações White Label da Brighter num único   │
 │  tipo (`Installation` = `Tenant` + `DeploymentManifest` +        │
 │  `ProvisioningSummary` + branding + módulos), com vocabulário     │
@@ -77,15 +77,25 @@ last_updated: 2026-08-02
 │  Docker/VPS/Supabase/DNS reais. lib/control-plane/. Ver           │
 │  docs/control-plane/control-plane.md.                            │
 └─────────────────────────────────────────────────────────────────┘
-                              ↓ (futuro)
+                              ↓ observado por
 ┌─────────────────────────────────────────────────────────────────┐
-│  AI Engine                     (futuro — não iniciado)          │
-│  camada de configuração/observabilidade dos agentes de IA por    │
-│  tenant, além do que já existe em app/app/ai/*.                  │
+│  Monitoring Engine               (concluído — Foundation v1)    │
+│  representa, calcula e resume a saúde operacional de cada        │
+│  instalação a partir do agregado `Installation` da Control       │
+│  Plane. Catálogo de ~37 checks (aplicação, DNS, SSL, banco,      │
+│  auth, storage, Redis, worker, scheduler, e-mail, WhatsApp/WAHA,  │
+│  backup), filtrados por plano + módulos + infraestrutura do      │
+│  manifesto. Motor de avaliação determinístico (saúde geral,      │
+│  score 0–100, blockers/warnings, checks ausentes/atrasados),      │
+│  incidentes derivados com deduplicação, adaptadores fake/noop e   │
+│  simulação determinística. SEM check real (rede/DNS/SSL/          │
+│  Supabase/VPS/Docker/Redis/WAHA), SEM persistência real, SEM      │
+│  API, SEM cron/worker reais. lib/monitoring/. Ver                │
+│  docs/monitoring/monitoring-engine.md.                            │
 └─────────────────────────────────────────────────────────────────┘
                               ↓ (futuro)
 ┌─────────────────────────────────────────────────────────────────┐
-│  Outreach Engine                (futuro — não iniciado)         │
+│  Outreach & AI Cadence Engine    (futuro — não iniciado)         │
 │  envio em massa e cadências multi-etapa. Hoje existe só como     │
 │  `automation.campaigns` (status: planned) no Module Engine.      │
 │  Ver docs/modules/campaigns-and-cadences.md.                     │
@@ -97,24 +107,25 @@ last_updated: 2026-08-02
 └─────────────────────────────────────────────────────────────────┘
                               ↓ (futuro)
 ┌─────────────────────────────────────────────────────────────────┐
-│  Monitoring Engine              (futuro — não iniciado)         │
-│  saúde/observabilidade por tenant através das instalações da     │
-│  Brighter (hoje cada instalação só observa a si mesma).          │
-└─────────────────────────────────────────────────────────────────┘
-                              ↓ (futuro)
-┌─────────────────────────────────────────────────────────────────┐
-│  Persistência real da Control Plane   (futuro — não iniciado)   │
+│  Persistência real (Control Plane + Monitoring)  (futuro)       │
 │  PRIMEIRO consumidor real de persistência de `Installation`/     │
-│  `Tenant`/`ProvisioningPlan` (tabela, migration, banco próprio    │
-│  da Brighter — nunca dentro do banco de um cliente) e de          │
+│  `Tenant`/`ProvisioningPlan`/`MonitoringSnapshot`/                │
+│  `MonitoringIncident` (tabela, migration, banco próprio da        │
+│  Brighter — nunca dentro do banco de um cliente) e de             │
 │  adaptadores reais de infra (Supabase/Vercel/VPS/DNS/Caddy/       │
-│  WhatsApp/e-mail/IA) que de fato executam o `ProvisioningPlan`.   │
-│  Por doutrina, CONSOME as camadas de domínio da Control Plane e   │
-│  das fundações anteriores já existentes (tipos, validação,        │
-│  readiness, planner, executor, `InstallationRepository`), nunca   │
-│  as substitui. Ver ROADMAP.md.                                     │
+│  WhatsApp/e-mail/IA) que de fato executam o `ProvisioningPlan`/   │
+│  os checks de monitoramento. Por doutrina, CONSOME as camadas de │
+│  domínio já existentes (tipos, validação, readiness, planner,     │
+│  executor, evaluator, `InstallationRepository`/                   │
+│  `MonitoringRepository`), nunca as substitui. Ver ROADMAP.md.      │
 └─────────────────────────────────────────────────────────────────┘
 ```
+
+**Nota sobre IA:** IA não é uma engine própria nesta arquitetura — é uma
+capacidade opcional consumida pelos módulos `ai.agents`/`ai.memory`/
+`ai.rag` (`lib/modules/catalog.ts`) e por futuros módulos de Outreach/
+Atendimento/Comercial. Removida do roadmap como fundação estrutural
+independente (ver ROADMAP.md).
 
 Cada camada consome a anterior sem duplicar a sua regra: o Deployment Engine
 reusa o catálogo e o resolvedor do Module Engine em vez de redecidir "que
@@ -193,3 +204,4 @@ o que referenciar além do valor em si.
 | Tenant Engine | `lib/tenants/`, `app/app/settings/operacao/`, `scripts/generate-tenant-summary.ts` | `docs/tenants/tenant-engine.md`, `docs/tenants/tenant-lifecycle.md` |
 | Provisioning Engine | `lib/provisioning/`, `app/app/settings/provisionamento/`, `scripts/generate-provisioning-plan.ts` | `docs/provisioning/provisioning-engine.md`, `docs/provisioning/provisioning-lifecycle.md`, `docs/provisioning/rollback-strategy.md` |
 | Control Plane | `lib/control-plane/`, `app/app/settings/control-plane/`, `scripts/control-plane-summary.ts` | `docs/control-plane/control-plane.md`, `docs/control-plane/lifecycle.md`, `docs/control-plane/status.md` |
+| Monitoring Engine | `lib/monitoring/`, `app/app/settings/monitoramento/`, `scripts/generate-monitoring-summary.ts` | `docs/monitoring/monitoring-engine.md`, `docs/monitoring/monitoring-lifecycle.md`, `docs/monitoring/incidents.md`, `docs/monitoring/check-catalog.md` |
