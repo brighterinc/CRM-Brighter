@@ -64,8 +64,6 @@
   `docs/control-plane/control-plane.md`, `docs/control-plane/lifecycle.md`
   e `docs/control-plane/status.md`.
 
-## Atual
-
 - **Brighter Monitoring Engine Foundation v1** — representa, calcula e
   resume a saúde operacional de cada instalação White Label a partir do
   agregado `Installation` da Control Plane. Catálogo canônico de ~37 checks
@@ -90,41 +88,75 @@
   `docs/monitoring/monitoring-lifecycle.md`, `docs/monitoring/incidents.md`
   e `docs/monitoring/check-catalog.md`.
 
+## Atual
+
+- **Brighter Billing Engine Foundation v1** — domínio comercial/financeiro
+  de cada instalação White Label a partir do agregado `Installation` da
+  Control Plane. Catálogo comercial (Lite/Pro/Dedicated, preços placeholder
+  de demonstração — valor real fica pra futura configuração na Control
+  Plane), assinatura com máquina de estados (draft/trial/active/past_due/
+  grace_period/suspended/cancelled/expired), invoice em centavos (nunca
+  ponto flutuante, total nunca negativo), descontos percentuais/fixos e
+  créditos, entitlement de módulo (`resolveBillingEntitlements` — nunca
+  concede o que o Module Engine já negou; `DISABLED_MODULES` mantém
+  precedência; assinatura suspensa nunca remove dado, módulos `core.*`
+  seguem acessíveis em modo restrito), consumo vs. limites contratados
+  (só recomenda, nunca bloqueia), upgrade imediato/downgrade agendado pro
+  fim do período, cancelamento imediato/ao fim do ciclo, eventos de
+  domínio, repositório in-memory (`InMemoryBillingRepository`),
+  adaptadores fake/noop de provedor de pagamento (`NoopBillingProviderAdapter`,
+  `FakeBillingProviderAdapter` — sem InfinitePay/Stripe/Mercado Pago/Pix/
+  boleto/cartão) e simulação determinística (`simulateBillingScenario`, 22
+  cenários). Integração com a Control Plane via view model próprio
+  (`attachBillingSummaryToInstallationSummary`), sem alterar
+  `lib/control-plane/*`; separação estrutural de responsabilidade com o
+  Monitoring Engine (Billing nunca decide saúde técnica, Monitoring nunca
+  decide cobrança). Tela admin somente-leitura (`/app/settings/billing`) e
+  CLI (`pnpm billing:summary`). Mesma doutrina de camada de domínio pura
+  das fundações anteriores: sem gateway, sem cobrança real, sem nota
+  fiscal, sem persistência real, sem tabela, sem migration, sem API.
+  `lib/billing/`. Ver `docs/billing/billing-engine.md`,
+  `docs/billing/subscription-lifecycle.md`,
+  `docs/billing/invoices-and-payments.md`,
+  `docs/billing/entitlements-and-limits.md` e
+  `docs/billing/provider-adapters.md`.
+
 ## Próximos
 
 Ordem alvo, cada uma consumindo (nunca substituindo) as camadas de domínio
 das fundações anteriores — ver "Doutrina de engine" em
 `docs/architecture/brighter-platform.md`:
 
-- **Persistência real da Control Plane** — primeiro consumidor real de
-  **persistência** de `Installation`/`Tenant`/`ProvisioningPlan` (tabela,
-  migration, banco próprio da Brighter — nunca dentro do banco de um
-  cliente), implementando a MESMA interface `InstallationRepository` já
-  definida em `lib/control-plane/repository.ts` (ex.: um futuro
-  `SupabaseInstallationRepository`), nunca reimplementando tipos/
-  validação/readiness já existentes.
-- **Adaptadores reais de provisionamento** — implementações de verdade de
-  `ProvisioningAdapter` (Supabase, Vercel/Cloudflare, VPS, DNS, Caddy,
-  WhatsApp/WAHA, e-mail, IA), plugadas no executor já existente em
-  `lib/provisioning/executor.ts` sem mudar sua interface.
-- **Adaptadores reais de monitoramento** — implementações de verdade de
-  `MonitoringAdapter` (ping HTTP, resolução DNS, validade SSL, Supabase,
-  Redis, WAHA), plugadas no motor já existente em `lib/monitoring/` sem
-  mudar sua interface; persistência real de `MonitoringSnapshot`/
-  `MonitoringIncident` (mesma doutrina de "Persistência real da Control
-  Plane" acima).
+- **Automation Engine Foundation** — execução real de automações hoje só
+  declarativas (`automation.webhooks`/`automation.followups`).
 - **Outreach & AI Cadence Engine** — envio em massa e cadências multi-etapa
   com IA por campanha (`automation.campaigns`, hoje `status: "planned"` no
   Module Engine). IA aqui é capacidade consumida pelo módulo, não uma
   engine própria (ver nota abaixo). Ver
   `docs/modules/campaigns-and-cadences.md`.
-- **Billing Engine** — cobrança real dos clientes White Label por
-  plano/tenant.
+- **Provisioning Adapters Foundation** — implementações de verdade de
+  `ProvisioningAdapter` (Supabase, Vercel/Cloudflare, VPS, DNS, Caddy,
+  WhatsApp/WAHA, e-mail, IA), plugadas no executor já existente em
+  `lib/provisioning/executor.ts` sem mudar sua interface.
+- **Marketplace / Module Licensing Foundation** — configuração de módulos
+  pelo painel (hoje só por env var `ENABLED_MODULES`/`DISABLED_MODULES`) e
+  descoberta/instalação de módulos de terceiros.
+- **Adaptadores reais de billing** — implementações de verdade de
+  `BillingProviderAdapter` (InfinitePay/Stripe/Mercado Pago/Pix/boleto),
+  plugadas em `lib/billing/adapters.ts` sem mudar sua interface.
+- **Persistência real da Control Plane** — primeiro consumidor real de
+  **persistência** de `Installation`/`Tenant`/`ProvisioningPlan`/
+  `MonitoringSnapshot`/`BillingSubscription`/`BillingInvoice` (tabela,
+  migration, banco próprio da Brighter — nunca dentro do banco de um
+  cliente), implementando as MESMAS interfaces `InstallationRepository`/
+  `MonitoringRepository`/`BillingRepository` já definidas (ex.: um futuro
+  `SupabaseInstallationRepository`), nunca reimplementando tipos/
+  validação/readiness já existentes.
+- **Adaptadores reais de monitoramento** — implementações de verdade de
+  `MonitoringAdapter` (ping HTTP, resolução DNS, validade SSL, Supabase,
+  Redis, WAHA), plugadas no motor já existente em `lib/monitoring/` sem
+  mudar sua interface.
 - **Suporte e SLA** — canal e processo formal de suporte por tenant.
-- **Configuração de módulos pelo painel / marketplace de módulos** — hoje
-  módulos são resolvidos só por env var (`ENABLED_MODULES`/
-  `DISABLED_MODULES`); falta UI de configuração e descoberta/instalação de
-  módulos de terceiros.
 
 **Nota sobre IA:** IA é capacidade opcional consumida por módulos
 específicos (`ai.agents`/`ai.memory`/`ai.rag`, e futuros módulos de

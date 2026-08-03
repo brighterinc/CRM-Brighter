@@ -93,6 +93,19 @@ last_updated: 2026-08-02
 │  API, SEM cron/worker reais. lib/monitoring/. Ver                │
 │  docs/monitoring/monitoring-engine.md.                            │
 └─────────────────────────────────────────────────────────────────┘
+                              ↓ licenciado/cobrado por
+┌─────────────────────────────────────────────────────────────────┐
+│  Billing Engine                 (concluído — Foundation v1)     │
+│  domínio comercial/financeiro de cada instalação: plano          │
+│  comercial (Lite/Pro/Dedicated, preços placeholder), assinatura,  │
+│  ciclo, invoice em centavos, descontos/créditos, entitlement de   │
+│  módulo (nunca concede o que o Module Engine já negou),           │
+│  consumo vs. limites (só recomenda, nunca bloqueia), grace        │
+│  period, upgrade imediato/downgrade agendado, cancelamento,       │
+│  eventos, simulação de 22 cenários. SEM gateway (InfinitePay/     │
+│  Stripe/Mercado Pago), SEM cobrança real, SEM persistência real,  │
+│  SEM API. lib/billing/. Ver docs/billing/billing-engine.md.       │
+└─────────────────────────────────────────────────────────────────┘
                               ↓ (futuro)
 ┌─────────────────────────────────────────────────────────────────┐
 │  Outreach & AI Cadence Engine    (futuro — não iniciado)         │
@@ -102,22 +115,19 @@ last_updated: 2026-08-02
 └─────────────────────────────────────────────────────────────────┘
                               ↓ (futuro)
 ┌─────────────────────────────────────────────────────────────────┐
-│  Billing Engine                 (futuro — não iniciado)         │
-│  cobrança real dos clientes White Label por plano/tenant.        │
-└─────────────────────────────────────────────────────────────────┘
-                              ↓ (futuro)
-┌─────────────────────────────────────────────────────────────────┐
-│  Persistência real (Control Plane + Monitoring)  (futuro)       │
+│  Persistência real (Control Plane + Monitoring + Billing) (futuro)│
 │  PRIMEIRO consumidor real de persistência de `Installation`/     │
 │  `Tenant`/`ProvisioningPlan`/`MonitoringSnapshot`/                │
-│  `MonitoringIncident` (tabela, migration, banco próprio da        │
-│  Brighter — nunca dentro do banco de um cliente) e de             │
-│  adaptadores reais de infra (Supabase/Vercel/VPS/DNS/Caddy/       │
-│  WhatsApp/e-mail/IA) que de fato executam o `ProvisioningPlan`/   │
-│  os checks de monitoramento. Por doutrina, CONSOME as camadas de │
-│  domínio já existentes (tipos, validação, readiness, planner,     │
-│  executor, evaluator, `InstallationRepository`/                   │
-│  `MonitoringRepository`), nunca as substitui. Ver ROADMAP.md.      │
+│  `MonitoringIncident`/`BillingSubscription`/`BillingInvoice`      │
+│  (tabela, migration, banco próprio da Brighter — nunca dentro     │
+│  do banco de um cliente) e de adaptadores reais de infra          │
+│  (Supabase/Vercel/VPS/DNS/Caddy/WhatsApp/e-mail/IA) e de           │
+│  pagamento (InfinitePay/Stripe/Mercado Pago) que de fato           │
+│  executam o `ProvisioningPlan`/os checks de monitoramento/a        │
+│  cobrança. Por doutrina, CONSOME as camadas de domínio já          │
+│  existentes (tipos, validação, readiness, planner, executor,       │
+│  evaluator, `InstallationRepository`/`MonitoringRepository`/        │
+│  `BillingRepository`), nunca as substitui. Ver ROADMAP.md.          │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -205,3 +215,4 @@ o que referenciar além do valor em si.
 | Provisioning Engine | `lib/provisioning/`, `app/app/settings/provisionamento/`, `scripts/generate-provisioning-plan.ts` | `docs/provisioning/provisioning-engine.md`, `docs/provisioning/provisioning-lifecycle.md`, `docs/provisioning/rollback-strategy.md` |
 | Control Plane | `lib/control-plane/`, `app/app/settings/control-plane/`, `scripts/control-plane-summary.ts` | `docs/control-plane/control-plane.md`, `docs/control-plane/lifecycle.md`, `docs/control-plane/status.md` |
 | Monitoring Engine | `lib/monitoring/`, `app/app/settings/monitoramento/`, `scripts/generate-monitoring-summary.ts` | `docs/monitoring/monitoring-engine.md`, `docs/monitoring/monitoring-lifecycle.md`, `docs/monitoring/incidents.md`, `docs/monitoring/check-catalog.md` |
+| Billing Engine | `lib/billing/`, `app/app/settings/billing/`, `scripts/generate-billing-summary.ts` | `docs/billing/billing-engine.md`, `docs/billing/subscription-lifecycle.md`, `docs/billing/invoices-and-payments.md`, `docs/billing/entitlements-and-limits.md`, `docs/billing/provider-adapters.md` |

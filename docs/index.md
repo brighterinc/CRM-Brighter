@@ -82,7 +82,7 @@ Detalham schema SQL e payloads exatos. **Consulte antes de modelar qualquer cois
 | [`research/reference-synthesis.md`](research/reference-synthesis.md) | Arquitetura herdada da referência WAHA |
 | [`research/followup-reference-mining.md`](research/followup-reference-mining.md) | Pesquisa do motor de follow-up |
 | [`threat-model.md`](threat-model.md) | **Superfície de ataque real do self-host** |
-| [`architecture/brighter-platform.md`](architecture/brighter-platform.md) | **Brighter Platform Architecture** — mapa entre as fundações White Label Runtime → Module Engine → Deployment Engine → Tenant Engine → Provisioning Engine → Control Plane → Monitoring Engine → (futuro) Outreach & AI Cadence Engine, planos comerciais Lite/Pro/Dedicated |
+| [`architecture/brighter-platform.md`](architecture/brighter-platform.md) | **Brighter Platform Architecture** — mapa entre as fundações White Label Runtime → Module Engine → Deployment Engine → Tenant Engine → Provisioning Engine → Control Plane → Monitoring Engine → Billing Engine → (futuro) Outreach & AI Cadence Engine, planos comerciais Lite/Pro/Dedicated |
 | [`modules/module-engine.md`](modules/module-engine.md) | Module Engine — catálogo tipado de módulos, planos de implantação (Lite/Pro/Dedicated), regras de resolução |
 | [`modules/campaigns-and-cadences.md`](modules/campaigns-and-cadences.md) | Spec futura de `automation.campaigns` (envio em massa e cadências) — **não implementado ainda** |
 | [`deployment/deployment-engine.md`](deployment/deployment-engine.md) | **Deployment Engine** — transforma config comercial (plano/módulos/marca/domínio) em manifesto técnico validado: infra, env vars (só nomes), blockers/warnings, checklist. Não provisiona nada |
@@ -98,6 +98,11 @@ Detalham schema SQL e payloads exatos. **Consulte antes de modelar qualquer cois
 | [`monitoring/monitoring-lifecycle.md`](monitoring/monitoring-lifecycle.md) | Estados de um `MonitoringSnapshot`/`MonitoringCheckStatus`, regra de `overallHealth` e os 13 cenários de `simulateMonitoringRun` |
 | [`monitoring/incidents.md`](monitoring/incidents.md) | Ciclo de vida de um `MonitoringIncident` — derivação, deduplicação e transições open/acknowledged/resolved/reopened |
 | [`monitoring/check-catalog.md`](monitoring/check-catalog.md) | Tabela completa dos ~37 checks do catálogo — plano, módulos/infra exigidos, severidade, cadência |
+| [`billing/billing-engine.md`](billing/billing-engine.md) | **Billing Engine** — domínio comercial/financeiro de cada instalação: plano comercial (Lite/Pro/Dedicated), assinatura, ciclo, invoice, entitlement de módulo, consumo/limites, descontos/créditos, upgrade/downgrade, grace period, cancelamento. Sem gateway, sem cobrança real |
+| [`billing/subscription-lifecycle.md`](billing/subscription-lifecycle.md) | Estados de `SubscriptionStatus` e transições — draft/trial/active/past_due/grace_period/suspended/cancelled/expired |
+| [`billing/invoices-and-payments.md`](billing/invoices-and-payments.md) | Ciclo de vida de uma `BillingInvoice`, aritmética em centavos, descontos/créditos — total nunca negativo, nunca imposto inventado |
+| [`billing/entitlements-and-limits.md`](billing/entitlements-and-limits.md) | `resolveBillingEntitlements` — precedência do Module Engine sobre o Billing, limites de consumo, "assinatura suspensa nunca remove dado" |
+| [`billing/provider-adapters.md`](billing/provider-adapters.md) | `BillingProviderAdapter` fake/noop — nenhuma integração real com InfinitePay/Stripe/Mercado Pago/Pix/boleto/cartão |
 
 ## 5. Design system
 

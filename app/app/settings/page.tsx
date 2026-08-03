@@ -101,8 +101,9 @@ const LINKS: SettingsLink[] = [
   },
   {
     href: "/app/settings/billing",
-    title: "Billing",
-    description: "Planos e cobrança (em breve).",
+    title: "Faturamento",
+    description: "Plano comercial, assinatura, ciclo, módulos contratados e situação financeira — somente leitura.",
+    adminOnly: true,
   },
 ];
 

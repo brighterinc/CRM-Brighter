@@ -216,6 +216,30 @@ tem botão de executar check — só texto "Simulação disponível via CLI".
 | J11.8 | Link "Monitoramento" na lista de Configurações | aparece só para admin, com a descrição correta |
 | J11.9 | Texto "Simulação disponível via CLI" | presente; nenhum botão de ação real de executar check existe na tela |
 
+## J12 — Configurações › Faturamento (Billing Engine) `[P2]`
+
+Contexto do código: tela somente leitura, admin-only
+(`app/app/settings/billing/page.tsx`), acessível por `/app/settings` →
+"Faturamento". Renderiza `generateBillingSummary()` (`lib/billing/summary.ts`)
+sobre a `Installation` da instalação atual + uma assinatura de
+DEMONSTRAÇÃO (`createDemoBillingSubscriptions()`, `lib/billing/repository.ts`)
+— nesta Foundation não existe assinatura real persistida, gateway ou
+cobrança. `[P2]`: tela de diagnóstico comercial interno, mais rara que
+Monitoramento no dia a dia de um admin recém-instalado. Não tem botão de
+cobrança real — só texto "Simulação disponível via CLI".
+
+| # | Caso | Expectativa |
+|---|------|-------------|
+| J12.1 | Admin abre Configurações → Faturamento | tela carrega sem erro com instalação/plano técnico/plano comercial/situação financeira |
+| J12.2 | Plano comercial bate o plano técnico da instalação | `summary.planId === installation.deploymentPlan` (demo escolhe a assinatura de mesmo plano) |
+| J12.3 | Módulos incluídos/extras/sem autorização | listas batem `resolveBillingEntitlements` — nenhum módulo `planned` ou fora do `allowedPlans` aparece como autorizado |
+| J12.4 | Situação financeira "Ativa" (assinatura de demo) | zero blockers/warnings, `financialRecommendation: "keep_active"` |
+| J12.5 | Atendente (role agent/manager) tenta acessar `/app/settings/billing` | bloqueado (`adminOnly`), mesmo padrão das demais telas de Configurações |
+| J12.6 | Links "Control Plane", "Monitoramento", "Provisionamento", "Operação", "Implantação" e "Módulos" na tela | levam pras telas certas |
+| J12.7 | Link "Faturamento" na lista de Configurações | aparece só para admin, com a descrição correta |
+| J12.8 | Texto "Simulação disponível via CLI" | presente; nenhum botão de cobrança real existe na tela |
+| J12.9 | Resumo Markdown embutido na tela | igual ao que `pnpm billing:summary -- --format markdown` produz pro mesmo cenário |
+
 ---
 
 ## Achados do mapeamento (pré-execução) — candidatos a correção
