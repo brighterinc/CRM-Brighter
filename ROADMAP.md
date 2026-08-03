@@ -29,9 +29,6 @@
   segredo) e CLI. Sem persistência real, sem provisionamento.
   `lib/tenants/`. Ver `docs/tenants/tenant-engine.md` e
   `docs/tenants/tenant-lifecycle.md`.
-
-## Atual
-
 - **Brighter Provisioning Engine Foundation v1** — transforma um `Tenant` +
   seu `DeploymentManifest` num plano de execução ORDENADO: catálogo
   canônico de etapas, dependências (com detecção de ciclo), status por
@@ -48,19 +45,40 @@
   `docs/provisioning/provisioning-lifecycle.md` e
   `docs/provisioning/rollback-strategy.md`.
 
+## Atual
+
+- **Brighter Control Plane Foundation v1** — agrega TODAS as instalações
+  White Label da Brighter num único tipo (`Installation` = `Tenant` +
+  `DeploymentManifest` + `ProvisioningSummary` + branding + módulos), com
+  vocabulário PRÓPRIO de status (`InstallationStatus`/`CommercialStatus`/
+  `TechnicalStatus` — a visão da Brighter sobre a instalação, distinta do
+  `commercialStatus`/`technicalStatus` que o próprio `Tenant` já rastreia
+  sobre si mesmo), catálogo de metadados de status (label/descrição/
+  categoria), validação estrutural que impede `deployment`/`branding`/
+  `modules` divergirem do `tenant` embutido, repositório in-memory
+  (`InMemoryInstallationRepository`) com create/update/archive/list/find/
+  filter/countByStatus, filtros compostos (plano/status/domínio/empresa/
+  módulo/marca/data) e resumo agregado (dashboard). Tela admin
+  somente-leitura (`/app/settings/control-plane`) e CLI
+  (`pnpm control:summary`). Mesma doutrina de camada de domínio pura das
+  fundações anteriores: sem persistência real, sem tabela, sem migration,
+  sem API, sem Docker/VPS/Supabase/DNS. `lib/control-plane/`. Ver
+  `docs/control-plane/control-plane.md`, `docs/control-plane/lifecycle.md`
+  e `docs/control-plane/status.md`.
+
 ## Próximos
 
 Ordem alvo, cada uma consumindo (nunca substituindo) as camadas de domínio
 das fundações anteriores — ver "Doutrina de engine" em
 `docs/architecture/brighter-platform.md`:
 
-- **Control Plane** — primeiro consumidor real de **persistência** de
-  `Tenant`/`ProvisioningPlan` (tabela, migration, banco próprio da
-  Brighter — nunca dentro do banco de um cliente), consumindo as MESMAS
-  interfaces já definidas (`TenantRepository` em
-  `lib/tenants/repository.ts`, o planner/executor de
-  `lib/provisioning/`), nunca reimplementando tipos/validação/readiness já
-  existentes.
+- **Persistência real da Control Plane** — primeiro consumidor real de
+  **persistência** de `Installation`/`Tenant`/`ProvisioningPlan` (tabela,
+  migration, banco próprio da Brighter — nunca dentro do banco de um
+  cliente), implementando a MESMA interface `InstallationRepository` já
+  definida em `lib/control-plane/repository.ts` (ex.: um futuro
+  `SupabaseInstallationRepository`), nunca reimplementando tipos/
+  validação/readiness já existentes.
 - **Adaptadores reais de provisionamento** — implementações de verdade de
   `ProvisioningAdapter` (Supabase, Vercel/Cloudflare, VPS, DNS, Caddy,
   WhatsApp/WAHA, e-mail, IA), plugadas no executor já existente em

@@ -48,16 +48,34 @@ last_updated: 2026-08-02
 └─────────────────────────────────────────────────────────────────┘
                               ↓ ordenado por
 ┌─────────────────────────────────────────────────────────────────┐
-│  Provisioning Engine            (atual — Foundation v1)         │
+│  Provisioning Engine            (concluído — Foundation v1)     │
 │  transforma um `Tenant` + seu `DeploymentManifest` num plano de  │
 │  execução ORDENADO: etapas, dependências, status, blockers,      │
 │  dry-run, rollback teórico e logs sanitizados. Mesma doutrina    │
 │  das fundações anteriores — camada de domínio pura, SEM          │
 │  persistência real (plano recalculado em memória a cada          │
 │  chamada) e SEM adaptador real de infra (só fake/noop). A        │
-│  persistência real de planos/execuções fica pra futura Control   │
-│  Plane. lib/provisioning/. Ver                                   │
-│  docs/provisioning/provisioning-engine.md.                       │
+│  persistência real de planos/execuções fica pra Control Plane    │
+│  (abaixo), quando ganhar persistência real. lib/provisioning/.   │
+│  Ver docs/provisioning/provisioning-engine.md.                   │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓ agregado por
+┌─────────────────────────────────────────────────────────────────┐
+│  Control Plane                  (atual — Foundation v1)         │
+│  agrega TODAS as instalações White Label da Brighter num único   │
+│  tipo (`Installation` = `Tenant` + `DeploymentManifest` +        │
+│  `ProvisioningSummary` + branding + módulos), com vocabulário     │
+│  PRÓPRIO de status (`InstallationStatus`/`CommercialStatus`/      │
+│  `TechnicalStatus` — a visão da BRIGHTER sobre a instalação,      │
+│  distinta do `commercialStatus`/`technicalStatus` que o próprio  │
+│  `Tenant` já rastreia sobre si mesmo). Catálogo de metadados de   │
+│  status, validação que impede `deployment`/`branding`/`modules`  │
+│  divergirem do `tenant` embutido, repositório in-memory,          │
+│  filtros compostos e resumo agregado (dashboard). Mesma doutrina │
+│  de camada de domínio pura — SEM persistência real (só            │
+│  `InMemoryInstallationRepository`, demonstração), SEM API, SEM    │
+│  Docker/VPS/Supabase/DNS reais. lib/control-plane/. Ver           │
+│  docs/control-plane/control-plane.md.                            │
 └─────────────────────────────────────────────────────────────────┘
                               ↓ (futuro)
 ┌─────────────────────────────────────────────────────────────────┐
@@ -85,16 +103,16 @@ last_updated: 2026-08-02
 └─────────────────────────────────────────────────────────────────┘
                               ↓ (futuro)
 ┌─────────────────────────────────────────────────────────────────┐
-│  Control Plane                  (futuro — não iniciado)         │
-│  PRIMEIRO consumidor real de persistência de `Tenant`/           │
-│  `ProvisioningPlan` (tabela, migration, banco próprio da         │
-│  Brighter — nunca dentro do banco de um cliente) e de             │
+│  Persistência real da Control Plane   (futuro — não iniciado)   │
+│  PRIMEIRO consumidor real de persistência de `Installation`/     │
+│  `Tenant`/`ProvisioningPlan` (tabela, migration, banco próprio    │
+│  da Brighter — nunca dentro do banco de um cliente) e de          │
 │  adaptadores reais de infra (Supabase/Vercel/VPS/DNS/Caddy/       │
 │  WhatsApp/e-mail/IA) que de fato executam o `ProvisioningPlan`.   │
-│  Por doutrina, CONSOME as camadas de domínio do Tenant Engine e   │
-│  do Provisioning Engine já existentes (tipos, validação,          │
-│  readiness, planner, executor), nunca as substitui. Ver           │
-│  ROADMAP.md.                                                       │
+│  Por doutrina, CONSOME as camadas de domínio da Control Plane e   │
+│  das fundações anteriores já existentes (tipos, validação,        │
+│  readiness, planner, executor, `InstallationRepository`), nunca   │
+│  as substitui. Ver ROADMAP.md.                                     │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -174,3 +192,4 @@ o que referenciar além do valor em si.
 | Deployment Engine | `lib/deployment/`, `app/app/settings/deployment/`, `scripts/generate-deployment-manifest.ts` | `docs/deployment/deployment-engine.md` |
 | Tenant Engine | `lib/tenants/`, `app/app/settings/operacao/`, `scripts/generate-tenant-summary.ts` | `docs/tenants/tenant-engine.md`, `docs/tenants/tenant-lifecycle.md` |
 | Provisioning Engine | `lib/provisioning/`, `app/app/settings/provisionamento/`, `scripts/generate-provisioning-plan.ts` | `docs/provisioning/provisioning-engine.md`, `docs/provisioning/provisioning-lifecycle.md`, `docs/provisioning/rollback-strategy.md` |
+| Control Plane | `lib/control-plane/`, `app/app/settings/control-plane/`, `scripts/control-plane-summary.ts` | `docs/control-plane/control-plane.md`, `docs/control-plane/lifecycle.md`, `docs/control-plane/status.md` |

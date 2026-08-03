@@ -88,6 +88,12 @@ const LINKS: SettingsLink[] = [
     adminOnly: true,
   },
   {
+    href: "/app/settings/control-plane",
+    title: "Control Plane",
+    description: "Visão de todas as instalações White Label da Brighter — somente leitura.",
+    adminOnly: true,
+  },
+  {
     href: "/app/settings/billing",
     title: "Billing",
     description: "Planos e cobrança (em breve).",

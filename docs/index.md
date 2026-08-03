@@ -82,7 +82,7 @@ Detalham schema SQL e payloads exatos. **Consulte antes de modelar qualquer cois
 | [`research/reference-synthesis.md`](research/reference-synthesis.md) | Arquitetura herdada da referência WAHA |
 | [`research/followup-reference-mining.md`](research/followup-reference-mining.md) | Pesquisa do motor de follow-up |
 | [`threat-model.md`](threat-model.md) | **Superfície de ataque real do self-host** |
-| [`architecture/brighter-platform.md`](architecture/brighter-platform.md) | **Brighter Platform Architecture** — mapa entre as fundações White Label Runtime → Module Engine → Deployment Engine → Tenant Engine → Provisioning Engine → (futuro) Control Plane / AI Engine / Outreach Engine, planos comerciais Lite/Pro/Dedicated |
+| [`architecture/brighter-platform.md`](architecture/brighter-platform.md) | **Brighter Platform Architecture** — mapa entre as fundações White Label Runtime → Module Engine → Deployment Engine → Tenant Engine → Provisioning Engine → Control Plane → (futuro) AI Engine / Outreach Engine, planos comerciais Lite/Pro/Dedicated |
 | [`modules/module-engine.md`](modules/module-engine.md) | Module Engine — catálogo tipado de módulos, planos de implantação (Lite/Pro/Dedicated), regras de resolução |
 | [`modules/campaigns-and-cadences.md`](modules/campaigns-and-cadences.md) | Spec futura de `automation.campaigns` (envio em massa e cadências) — **não implementado ainda** |
 | [`deployment/deployment-engine.md`](deployment/deployment-engine.md) | **Deployment Engine** — transforma config comercial (plano/módulos/marca/domínio) em manifesto técnico validado: infra, env vars (só nomes), blockers/warnings, checklist. Não provisiona nada |
@@ -91,6 +91,9 @@ Detalham schema SQL e payloads exatos. **Consulte antes de modelar qualquer cois
 | [`provisioning/provisioning-engine.md`](provisioning/provisioning-engine.md) | **Provisioning Engine** — transforma `Tenant` + `DeploymentManifest` num plano de execução ordenado (etapas, dependências, status, blockers, fingerprint). Sem infraestrutura real, só adaptadores fake/noop |
 | [`provisioning/provisioning-lifecycle.md`](provisioning/provisioning-lifecycle.md) | Ciclo de vida de um `ProvisioningPlan` e de cada `ProvisioningStepState` — estados possíveis e transições |
 | [`provisioning/rollback-strategy.md`](provisioning/rollback-strategy.md) | Estratégia de rollback teórico — o que é revertível hoje, o que nunca é sugerido automaticamente (ex.: remoção de VPS), e o que fica pra adaptadores reais futuros |
+| [`control-plane/control-plane.md`](control-plane/control-plane.md) | **Control Plane** — agrega TODAS as instalações White Label da Brighter (`Installation` = `Tenant` + `DeploymentManifest` + `ProvisioningSummary` + branding + módulos), vocabulário próprio de status, repositório in-memory, filtros, resumo agregado. Sem persistência real |
+| [`control-plane/lifecycle.md`](control-plane/lifecycle.md) | Ciclo de vida de uma `Installation` — estados e transições de `InstallationStatus`/`CommercialStatus`/`TechnicalStatus` |
+| [`control-plane/status.md`](control-plane/status.md) | Catálogo de referência rápida dos três vocabulários de status e seus metadados (label/descrição/categoria) |
 
 ## 5. Design system
 
