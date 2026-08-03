@@ -19,9 +19,6 @@
   variáveis de ambiente só-nomes, blockers/warnings, checklist). Sem
   provisionamento real. `lib/deployment/`. Ver
   `docs/deployment/deployment-engine.md`.
-
-## Atual
-
 - **Brighter Tenant Engine Foundation v1** — consolida identidade
   comercial, plano, módulos, branding, domínio, target, referências de
   infra/Supabase, status comercial/técnico, responsáveis e o manifesto de
@@ -33,12 +30,41 @@
   `lib/tenants/`. Ver `docs/tenants/tenant-engine.md` e
   `docs/tenants/tenant-lifecycle.md`.
 
+## Atual
+
+- **Brighter Provisioning Engine Foundation v1** — transforma um `Tenant` +
+  seu `DeploymentManifest` num plano de execução ORDENADO: catálogo
+  canônico de etapas, dependências (com detecção de ciclo), status por
+  etapa e por run, blockers/warnings, fingerprint determinístico (sem
+  segredo), dry-run/simulação determinística, plano de rollback teórico
+  (nunca executado) e logs estruturados sanitizados. Executor abstrato só
+  com adaptadores fake/noop (`NoopProvisioningAdapter`,
+  `InMemoryProvisioningAdapter`) — nenhuma infraestrutura real é criada.
+  Tela admin somente-leitura (`/app/settings/provisionamento`) e CLI
+  (`pnpm provisioning:plan`). Mesma doutrina de camada de domínio pura das
+  fundações anteriores: sem persistência real (plano recalculado em
+  memória a cada chamada), sem tabela, sem migration. `lib/provisioning/`.
+  Ver `docs/provisioning/provisioning-engine.md`,
+  `docs/provisioning/provisioning-lifecycle.md` e
+  `docs/provisioning/rollback-strategy.md`.
+
 ## Próximos
 
 Ordem alvo, cada uma consumindo (nunca substituindo) as camadas de domínio
 das fundações anteriores — ver "Doutrina de engine" em
 `docs/architecture/brighter-platform.md`:
 
+- **Control Plane** — primeiro consumidor real de **persistência** de
+  `Tenant`/`ProvisioningPlan` (tabela, migration, banco próprio da
+  Brighter — nunca dentro do banco de um cliente), consumindo as MESMAS
+  interfaces já definidas (`TenantRepository` em
+  `lib/tenants/repository.ts`, o planner/executor de
+  `lib/provisioning/`), nunca reimplementando tipos/validação/readiness já
+  existentes.
+- **Adaptadores reais de provisionamento** — implementações de verdade de
+  `ProvisioningAdapter` (Supabase, Vercel/Cloudflare, VPS, DNS, Caddy,
+  WhatsApp/WAHA, e-mail, IA), plugadas no executor já existente em
+  `lib/provisioning/executor.ts` sem mudar sua interface.
 - **AI Engine** — camada de configuração/observabilidade dos agentes de IA
   por tenant, além do que já existe em `app/app/ai/*`.
 - **Outreach Engine** — envio em massa e cadências multi-etapa
@@ -48,14 +74,6 @@ das fundações anteriores — ver "Doutrina de engine" em
   plano/tenant.
 - **Monitoring Engine** — saúde/observabilidade por tenant através das
   instalações da Brighter (hoje cada instalação só observa a si mesma).
-- **Provisioning Engine** — cria automaticamente uma nova operação (VPS
-  dedicada ou Lite), configura domínio, branding, módulos, Supabase e
-  infraestrutura a partir de um único `DeploymentManifest`. É o primeiro
-  consumidor real de **persistência de tenants** (tabela, migration, banco
-  próprio da Brighter — nunca dentro do banco de um cliente) — consumindo
-  a MESMA interface `TenantRepository` já definida em
-  `lib/tenants/repository.ts`, nunca reimplementando os tipos/validação/
-  readiness do Tenant Engine.
 - **Suporte e SLA** — canal e processo formal de suporte por tenant.
 - **Configuração de módulos pelo painel** — hoje módulos são resolvidos só
   por env var (`ENABLED_MODULES`/`DISABLED_MODULES`); falta UI de

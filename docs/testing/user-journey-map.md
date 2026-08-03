@@ -166,6 +166,31 @@ onboarding/rotina diária do atendente.
 | J9.8 | Links "Implantação" e "Módulos" na tela | levam pras telas certas |
 | J9.9 | Link "Operação" na lista de Configurações | aparece só para admin, com a descrição correta |
 
+## J10 — Configurações › Provisionamento (Provisioning Engine) `[P2]`
+
+Contexto do código: tela somente leitura, admin-only
+(`app/app/settings/provisionamento/page.tsx`), acessível por `/app/settings`
+→ "Provisionamento". Renderiza `generateProvisioningPlan()`
+(`lib/provisioning/planner.ts`) a partir do `Tenant` da instalação atual
+(`getCurrentInstallationTenant()`) e do seu `DeploymentManifest` já anexado
+— mesmo padrão de espelho do estado atual das telas J8/J9, nunca um
+formulário. `[P2]`: tela de diagnóstico administrativo interno (plano de
+execução), não caminho de onboarding/rotina diária. Não tem botão de
+provisionar — só texto "Simulação disponível via CLI".
+
+| # | Caso | Expectativa |
+|---|------|-------------|
+| J10.1 | Admin abre Configurações → Provisionamento | tela carrega sem erro com tenant/plano/target/domínio da instalação atual |
+| J10.2 | Prontidão do tenant | mostra `readiness.score`/100 e blockers, reaproveitando o mesmo motor da tela Operação (J9) |
+| J10.3 | Etapas ordenadas | lista bate a ordem de dependência do catálogo (`PROVISIONING_STEP_CATALOG`) — nenhuma etapa aparece antes de sua dependência |
+| J10.4 | Instalação sem readiness completa (caso comum hoje) | plano aparece com status "blocked" e a lista de blockers em linguagem de operador, nunca stack trace |
+| J10.5 | Seção Rollback | mostra "nenhuma etapa concluída — rollback não se aplica ainda" (nenhuma execução real acontece nesta Foundation) |
+| J10.6 | Fingerprint | exibido como código determinístico, nunca muda entre dois carregamentos da mesma instalação sem alteração de estado |
+| J10.7 | Atendente (role agent/manager) tenta acessar `/app/settings/provisionamento` | bloqueado (`adminOnly`), mesmo padrão das demais telas de Configurações |
+| J10.8 | Links "Operação", "Implantação" e "Módulos" na tela | levam pras telas certas |
+| J10.9 | Link "Provisionamento" na lista de Configurações | aparece só para admin, com a descrição correta |
+| J10.10 | Texto "Simulação disponível via CLI" | presente; nenhum botão de ação real de provisionar existe na tela |
+
 ---
 
 ## Achados do mapeamento (pré-execução) — candidatos a correção

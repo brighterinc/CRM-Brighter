@@ -76,6 +76,12 @@ const LINKS: SettingsLink[] = [
     adminOnly: true,
   },
   {
+    href: "/app/settings/provisionamento",
+    title: "Provisionamento",
+    description: "Plano de execução, etapas, dependências e bloqueios — somente leitura.",
+    adminOnly: true,
+  },
+  {
     href: "/app/settings/operacao",
     title: "Operação",
     description: "Prontidão comercial e técnica desta instalação — módulos, infraestrutura e domínio.",
