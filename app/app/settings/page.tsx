@@ -105,6 +105,12 @@ const LINKS: SettingsLink[] = [
     description: "Plano comercial, assinatura, ciclo, módulos contratados e situação financeira — somente leitura.",
     adminOnly: true,
   },
+  {
+    href: "/app/settings/automacao",
+    title: "Automação",
+    description: "Workflows de automação desta instalação — gatilhos, ações, ramificação, delay e retry — somente leitura.",
+    adminOnly: true,
+  },
 ];
 
 export default async function SettingsHubPage() {

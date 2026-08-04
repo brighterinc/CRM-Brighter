@@ -103,6 +103,9 @@ Detalham schema SQL e payloads exatos. **Consulte antes de modelar qualquer cois
 | [`billing/invoices-and-payments.md`](billing/invoices-and-payments.md) | Ciclo de vida de uma `BillingInvoice`, aritmética em centavos, descontos/créditos — total nunca negativo, nunca imposto inventado |
 | [`billing/entitlements-and-limits.md`](billing/entitlements-and-limits.md) | `resolveBillingEntitlements` — precedência do Module Engine sobre o Billing, limites de consumo, "assinatura suspensa nunca remove dado" |
 | [`billing/provider-adapters.md`](billing/provider-adapters.md) | `BillingProviderAdapter` fake/noop — nenhuma integração real com InfinitePay/Stripe/Mercado Pago/Pix/boleto/cartão |
+| [`automation/automation-engine.md`](automation/automation-engine.md) | **Automation Engine** — modelagem de plataforma de workflows (gatilhos/condições/ações/branch/delay/retry/idempotência/histórico) de cada instalação. Distinto do motor legado `lib/automation/` (execução real por-organização) — ver tabela de comparação. Sem execução real |
+| [`automation/workflow-lifecycle.md`](automation/workflow-lifecycle.md) | Estados de `WorkflowRun`/`WorkflowStepRunState`, como o executor caminha o grafo de ramificação, e os 8 cenários de `simulateWorkflowRun` |
+| [`automation/action-catalog.md`](automation/action-catalog.md) | Tabela completa de `WORKFLOW_TRIGGER_CATALOG`/`WORKFLOW_ACTION_CATALOG` — módulo exigido, planos, retry/delay suportado |
 
 ## 5. Design system
 

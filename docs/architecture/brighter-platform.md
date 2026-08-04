@@ -106,6 +106,23 @@ last_updated: 2026-08-02
 │  Stripe/Mercado Pago), SEM cobrança real, SEM persistência real,  │
 │  SEM API. lib/billing/. Ver docs/billing/billing-engine.md.       │
 └─────────────────────────────────────────────────────────────────┘
+                              ↓ automatizado por
+┌─────────────────────────────────────────────────────────────────┐
+│  Automation Engine               (concluído — Foundation v1)    │
+│  modela "o que uma instalação White Label PODE automatizar":     │
+│  gatilhos, condições, ações, ramificação (branch), delay, retry, │
+│  idempotência e histórico — domínio puro de simulação            │
+│  determinística. Catálogo de 8 gatilhos + 5 ações (mesmos ids do │
+│  motor legado, nunca importados). Executor abstrato só com        │
+│  adaptadores fake/noop (`NoopWorkflowActionAdapter`,              │
+│  `InMemoryWorkflowActionAdapter`) — nenhuma ação real executa.    │
+│  Distinto do motor legado `lib/automation/` (execução real,       │
+│  por-organização, `automation_rules`/`event_log` reais) — zero    │
+│  acoplamento nas duas direções. SEM execução real, SEM             │
+│  agendamento real (delay/retry só calculam `nextAttemptAt`), SEM  │
+│  persistência real, SEM API. lib/automation-engine/. Ver          │
+│  docs/automation/automation-engine.md.                            │
+└─────────────────────────────────────────────────────────────────┘
                               ↓ (futuro)
 ┌─────────────────────────────────────────────────────────────────┐
 │  Outreach & AI Cadence Engine    (futuro — não iniciado)         │
@@ -216,3 +233,4 @@ o que referenciar além do valor em si.
 | Control Plane | `lib/control-plane/`, `app/app/settings/control-plane/`, `scripts/control-plane-summary.ts` | `docs/control-plane/control-plane.md`, `docs/control-plane/lifecycle.md`, `docs/control-plane/status.md` |
 | Monitoring Engine | `lib/monitoring/`, `app/app/settings/monitoramento/`, `scripts/generate-monitoring-summary.ts` | `docs/monitoring/monitoring-engine.md`, `docs/monitoring/monitoring-lifecycle.md`, `docs/monitoring/incidents.md`, `docs/monitoring/check-catalog.md` |
 | Billing Engine | `lib/billing/`, `app/app/settings/billing/`, `scripts/generate-billing-summary.ts` | `docs/billing/billing-engine.md`, `docs/billing/subscription-lifecycle.md`, `docs/billing/invoices-and-payments.md`, `docs/billing/entitlements-and-limits.md`, `docs/billing/provider-adapters.md` |
+| Automation Engine | `lib/automation-engine/`, `app/app/settings/automacao/`, `scripts/generate-automation-summary.ts` | `docs/automation/automation-engine.md`, `docs/automation/workflow-lifecycle.md`, `docs/automation/action-catalog.md` |

@@ -88,8 +88,6 @@
   `docs/monitoring/monitoring-lifecycle.md`, `docs/monitoring/incidents.md`
   e `docs/monitoring/check-catalog.md`.
 
-## Atual
-
 - **Brighter Billing Engine Foundation v1** — domínio comercial/financeiro
   de cada instalação White Label a partir do agregado `Installation` da
   Control Plane. Catálogo comercial (Lite/Pro/Dedicated, preços placeholder
@@ -121,14 +119,48 @@
   `docs/billing/entitlements-and-limits.md` e
   `docs/billing/provider-adapters.md`.
 
+## Atual
+
+- **Brighter Automation Engine Foundation v1** — modela "o que uma
+  instalação White Label PODE automatizar": gatilhos, condições, ações,
+  ramificação (branch onSuccess/onFailure), delay, retry, idempotência
+  (de RUN via fingerprint determinístico, e de ETAPA — nunca reexecuta
+  uma etapa `completed`) e histórico sanitizado, como domínio puro de
+  simulação determinística. Catálogo de 8 gatilhos + 5 ações (mesmos ids
+  conceituais do motor legado `lib/automation/`, documentados via
+  `legacyActionType`, nunca importados — zero acoplamento nas duas
+  direções). Executor abstrato caminha o grafo de ramificação uma etapa
+  por vez, só com adaptadores fake/noop (`NoopWorkflowActionAdapter`,
+  `InMemoryWorkflowActionAdapter`); delay/retry nunca usam
+  `setTimeout`/cron real — só calculam `nextAttemptAt`, quem avança o
+  relógio é sempre quem chama. Validação de entitlement reusa
+  `MODULE_CATALOG` (módulo `status: "planned"` — ex. `automation.campaigns`
+  — nunca autorizado, mesma regra do Billing Engine), repositório
+  in-memory (`InMemoryWorkflowRepository`) com `createDemoWorkflows()`, e
+  simulação determinística (`simulateWorkflowRun`, 8 cenários: sucesso
+  completo, retry-então-sucesso, retry esgotado com fallback, fallback
+  também falha, gatilho duplicado ignorado por idempotência, etapa em
+  delay sem resolver, workflow inativo, módulo não autorizado). Tela
+  admin somente-leitura (`/app/settings/automacao`) e CLI (`pnpm
+  automation:summary`). Mesma doutrina de camada de domínio pura das
+  fundações anteriores: sem execução real, sem agendamento real, sem
+  persistência real, sem tabela, sem migration, sem API.
+  `lib/automation-engine/`. Ver `docs/automation/automation-engine.md`,
+  `docs/automation/workflow-lifecycle.md` e
+  `docs/automation/action-catalog.md`.
+
 ## Próximos
 
 Ordem alvo, cada uma consumindo (nunca substituindo) as camadas de domínio
 das fundações anteriores — ver "Doutrina de engine" em
 `docs/architecture/brighter-platform.md`:
 
-- **Automation Engine Foundation** — execução real de automações hoje só
-  declarativas (`automation.webhooks`/`automation.followups`).
+- **Automation Adapters Foundation** — implementações de verdade de
+  `WorkflowActionAdapter` que de fato chamem `lib/automation/actions/*`
+  (execução real das ações hoje só simuladas pela Automation Engine
+  Foundation), plugadas no executor já existente em
+  `lib/automation-engine/executor.ts` sem mudar sua interface. Mesmo
+  padrão da "Provisioning Adapters Foundation" abaixo.
 - **Outreach & AI Cadence Engine** — envio em massa e cadências multi-etapa
   com IA por campanha (`automation.campaigns`, hoje `status: "planned"` no
   Module Engine). IA aqui é capacidade consumida pelo módulo, não uma

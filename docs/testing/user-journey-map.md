@@ -240,6 +240,31 @@ cobrança real — só texto "Simulação disponível via CLI".
 | J12.8 | Texto "Simulação disponível via CLI" | presente; nenhum botão de cobrança real existe na tela |
 | J12.9 | Resumo Markdown embutido na tela | igual ao que `pnpm billing:summary -- --format markdown` produz pro mesmo cenário |
 
+## J13 — Configurações › Automação (Automation Engine) `[P2]`
+
+Contexto do código: tela somente leitura, admin-only
+(`app/app/settings/automacao/page.tsx`), acessível por `/app/settings` →
+"Automação". Renderiza `generateAutomationSummary()`
+(`lib/automation-engine/summary.ts`) sobre a `Installation` da instalação
+atual + o catálogo de workflows de DEMONSTRAÇÃO
+(`createDemoWorkflows()`, `lib/automation-engine/repository.ts`) — nesta
+Foundation não existe workflow real persistido nem execução real de ação.
+`[P2]`: tela de diagnóstico de plataforma interna, mesma cadência de
+Faturamento/Provisionamento no dia a dia de um admin. Não tem botão de
+execução real — só texto "Simulação disponível via CLI".
+
+| # | Caso | Expectativa |
+|---|------|-------------|
+| J13.1 | Admin abre Configurações → Automação | tela carrega sem erro com instalação/plano/workflows/runs |
+| J13.2 | Instalação com `automation.webhooks` habilitado (padrão da tela) | 1 workflow de demonstração ativo, 1 run `completed` (cenário `"all_success"` simulado na renderização) |
+| J13.3 | Instalação sem `automation.webhooks` habilitado | zero workflows, mensagem "Nenhum workflow configurado" em vez de tabela vazia sem contexto |
+| J13.4 | Blockers de configuração | vazio quando o workflow de demo está autorizado; populado se um módulo exigido por alguma etapa não estiver habilitado (validado via CLI `--scenario module_not_authorized`, não nesta tela que só mostra o estado atual) |
+| J13.5 | Atendente (role agent/manager) tenta acessar `/app/settings/automacao` | bloqueado (`adminOnly`), mesmo padrão das demais telas de Configurações |
+| J13.6 | Links "Control Plane", "Monitoramento", "Faturamento", "Provisionamento", "Operação", "Implantação" e "Módulos" na tela | levam pras telas certas |
+| J13.7 | Link "Automação" na lista de Configurações | aparece só para admin, com a descrição correta |
+| J13.8 | Texto "Simulação disponível via CLI" | presente; nenhum botão de execução real de workflow existe na tela |
+| J13.9 | Runs recentes refletem o run simulado | id, workflow, status `completed`, `createdAt` batem o run gerado na própria renderização |
+
 ---
 
 ## Achados do mapeamento (pré-execução) — candidatos a correção
