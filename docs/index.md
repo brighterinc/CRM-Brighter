@@ -10,7 +10,7 @@ audited_against: origin/main @ 789dfa6 (v1.0.0, 2026-07-27)
 
 # Índice da documentação — DeskcommCRM
 
-Mapa dos **119** arquivos `.md` de `docs/`, espalhados por **23** subpastas — régua:
+Mapa dos **127** arquivos `.md` de `docs/`, espalhados por **24** subpastas (+8 arquivos/+1 subpasta — `docs/outreach/`, adicionados com a Outreach & AI Cadence Engine Foundation v1) — régua:
 `git ls-files 'docs/**/*.md' | wc -l`. Existe porque a documentação cresceu sem ponto
 de entrada: sem este índice, humano e agente não acham o que já foi decidido e
 reescrevem por cima.
@@ -106,6 +106,14 @@ Detalham schema SQL e payloads exatos. **Consulte antes de modelar qualquer cois
 | [`automation/automation-engine.md`](automation/automation-engine.md) | **Automation Engine** — modelagem de plataforma de workflows (gatilhos/condições/ações/branch/delay/retry/idempotência/histórico) de cada instalação. Distinto do motor legado `lib/automation/` (execução real por-organização) — ver tabela de comparação. Sem execução real |
 | [`automation/workflow-lifecycle.md`](automation/workflow-lifecycle.md) | Estados de `WorkflowRun`/`WorkflowStepRunState`, como o executor caminha o grafo de ramificação, e os 8 cenários de `simulateWorkflowRun` |
 | [`automation/action-catalog.md`](automation/action-catalog.md) | Tabela completa de `WORKFLOW_TRIGGER_CATALOG`/`WORKFLOW_ACTION_CATALOG` — módulo exigido, planos, retry/delay suportado |
+| [`outreach/outreach-engine.md`](outreach/outreach-engine.md) | **Outreach & AI Cadence Engine** — domínio comercial de campanha/cadência: segmento, audiência, cadência multi-etapa, janela/throttling, templates, consentimento/opt-out, respostas, IA opcional, handoff humano. Distinto do motor de follow-up real `lib/followup/` e do Automation Engine genérico — ver tabela de comparação. Sem envio real |
+| [`outreach/campaign-lifecycle.md`](outreach/campaign-lifecycle.md) | Estados de `CampaignStatus` e transições válidas — draft/scheduled/active/paused/completed/cancelled/archived/blocked |
+| [`outreach/cadences.md`](outreach/cadences.md) | Grafo de `OutreachCadenceStep` e ciclo de vida de `OutreachEnrollment` — idempotência, `pending → active` direto |
+| [`outreach/audience-and-consent.md`](outreach/audience-and-consent.md) | Pipeline de segmento → audiência → exclusão de inelegíveis → consentimento/opt-out (`contacts.is_blocked`/`consent` espelhados) |
+| [`outreach/throttling-and-windows.md`](outreach/throttling-and-windows.md) | Janela de envio, políticas de throttling (valores reais de `lib/automation/throttle.ts`), templates e personalização |
+| [`outreach/responses-and-ai.md`](outreach/responses-and-ai.md) | Classificação de resposta, adaptadores `ResponseClassifier`/`ResponseDraftGenerator` fake/noop — IA opcional, nunca AI Engine própria |
+| [`outreach/human-handoff.md`](outreach/human-handoff.md) | `evaluateHumanHandoff`/`deriveRecommendedOwnerAction` — preview, nunca atribui vendedor real |
+| [`outreach/simulation.md`](outreach/simulation.md) | Os 23 cenários de `simulateOutreachScenario` e a regra de exit code da CLI (`pnpm outreach:summary`) |
 
 ## 5. Design system
 

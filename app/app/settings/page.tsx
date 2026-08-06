@@ -111,6 +111,12 @@ const LINKS: SettingsLink[] = [
     description: "Workflows de automação desta instalação — gatilhos, ações, ramificação, delay e retry — somente leitura.",
     adminOnly: true,
   },
+  {
+    href: "/app/settings/outreach",
+    title: "Outreach & Cadências",
+    description: "Campanhas e cadências multi-etapa com IA opcional — público, throttling, respostas e opt-out — somente leitura, sem envio real.",
+    adminOnly: true,
+  },
 ];
 
 export default async function SettingsHubPage() {

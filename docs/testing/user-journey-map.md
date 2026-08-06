@@ -267,6 +267,32 @@ execução real — só texto "Simulação disponível via CLI".
 
 ---
 
+## J14 — Configurações › Outreach & Cadências (Outreach & AI Cadence Engine) `[P2]`
+
+Contexto do código: tela somente leitura, admin-only
+(`app/app/settings/outreach/page.tsx`), acessível por `/app/settings` →
+"Outreach & Cadências". Renderiza `generateOutreachSummary()`
+(`lib/outreach/summary.ts`) sobre a `Installation` da instalação atual + o
+cenário `"healthy"` de `simulateOutreachScenario()`
+(`lib/outreach/simulation.ts`) — nesta Foundation não existe campanha real
+persistida nem envio real de mensagem. `[P2]`: tela de diagnóstico de
+plataforma interna, mesma cadência de Automação/Faturamento/Provisionamento
+no dia a dia de um admin. Não tem botão de disparo real — só texto
+"Simulação disponível via CLI".
+
+| # | Caso | Expectativa |
+|---|------|-------------|
+| J14.1 | Admin abre Configurações → Outreach & Cadências | tela carrega sem erro com instalação/plano/campanhas/enrollments |
+| J14.2 | Cenário `"healthy"` simulado na renderização | 1 campanha ativa, audiência/elegíveis/bloqueados coerentes com os 8 contatos sintéticos de demonstração, enrollments na primeira etapa da cadência |
+| J14.3 | Blockers de configuração | sempre populado nesta Foundation com "`automation.campaigns` não autorizado" — módulo `status: "planned"`, nunca autorizado em produção; é o comportamento ESPERADO, não um bug |
+| J14.4 | Atendente (role agent/manager) tenta acessar `/app/settings/outreach` | bloqueado (`adminOnly`), mesmo padrão das demais telas de Configurações |
+| J14.5 | Links "Automação", "Faturamento", "Monitoramento", "Control Plane" e "Módulos" na tela | levam pras telas certas |
+| J14.6 | Link "Outreach & Cadências" na lista de Configurações | aparece só para admin, com a descrição correta |
+| J14.7 | Texto "Simulação disponível via CLI" | presente; nenhum botão de disparo real de campanha existe na tela |
+| J14.8 | Resumo em Markdown exibido na tela | bate byte-a-byte com `pnpm outreach:summary -- ... --format markdown` pros mesmos parâmetros (mesma função `renderOutreachSummaryMarkdown`) |
+
+---
+
 ## Achados do mapeamento (pré-execução) — candidatos a correção
 
 | ID | Achado | Origem | Severidade |

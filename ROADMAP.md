@@ -119,8 +119,6 @@
   `docs/billing/entitlements-and-limits.md` e
   `docs/billing/provider-adapters.md`.
 
-## Atual
-
 - **Brighter Automation Engine Foundation v1** — modela "o que uma
   instalação White Label PODE automatizar": gatilhos, condições, ações,
   ramificação (branch onSuccess/onFailure), delay, retry, idempotência
@@ -149,6 +147,36 @@
   `docs/automation/workflow-lifecycle.md` e
   `docs/automation/action-catalog.md`.
 
+## Atual
+
+- **Brighter Outreach & AI Cadence Engine Foundation v1** — modela o
+  domínio COMERCIAL de outreach/cadência: campanhas, segmentos, audiência,
+  cadências multi-etapa (grafo de `OutreachCadenceStep`), janela de envio,
+  throttling (valores reais de `lib/automation/throttle.ts`/CLAUDE.md
+  §WAHA — nunca inventados), templates + personalização (variáveis fixas
+  nomeadas, nunca dot-path livre/`eval`), consentimento/opt-out
+  (`contacts.is_blocked`/`consent` espelhados, opt-out sempre com
+  precedência), respostas + classificação por IA opcional (`ai.agents`,
+  adaptadores `Noop`/`Fake` determinísticos por palavra-chave, nunca IA
+  externa), handoff humano (preview, nunca atribui vendedor real) e
+  métricas de campanha, como domínio puro de simulação determinística.
+  TODA entrada do catálogo de campanha exige `automation.campaigns`
+  (`status: "planned"` no Module Engine — nunca autorizado em produção
+  nesta Foundation, mesma regra do Automation/Billing Engine). Integra
+  (sem duplicar) as seis fundações anteriores: `Installation`/
+  `MODULE_CATALOG` (autorização), `resolveBillingEntitlements` (limite de
+  plano), `MonitoringSnapshot` (saúde de canal), view model pro Automation
+  Engine (`mapCadenceToAutomationView`/`mapEnrollmentToAutomationExecutionView`
+  — nunca um `WorkflowDefinition` real) e attach pro resumo da Control
+  Plane. Repositório in-memory (`InMemoryOutreachRepository`) com
+  `createDemoCampaigns()`, e simulação determinística
+  (`simulateOutreachScenario`, 24 cenários). Tela admin somente-leitura
+  (`/app/settings/outreach`) e CLI (`pnpm outreach:summary`). Mesma
+  doutrina de camada de domínio pura das fundações anteriores: sem envio
+  real, sem IA real, sem agendamento real, sem persistência real, sem
+  tabela, sem migration, sem API. `lib/outreach/`. Ver
+  `docs/outreach/outreach-engine.md` e os demais docs em `docs/outreach/`.
+
 ## Próximos
 
 Ordem alvo, cada uma consumindo (nunca substituindo) as camadas de domínio
@@ -161,11 +189,12 @@ das fundações anteriores — ver "Doutrina de engine" em
   Foundation), plugadas no executor já existente em
   `lib/automation-engine/executor.ts` sem mudar sua interface. Mesmo
   padrão da "Provisioning Adapters Foundation" abaixo.
-- **Outreach & AI Cadence Engine** — envio em massa e cadências multi-etapa
-  com IA por campanha (`automation.campaigns`, hoje `status: "planned"` no
-  Module Engine). IA aqui é capacidade consumida pelo módulo, não uma
-  engine própria (ver nota abaixo). Ver
-  `docs/modules/campaigns-and-cadences.md`.
+- **Outreach Runtime real** — adapta `OutreachChannelAdapter`/
+  `ResponseClassifier`/`ResponseDraftGenerator` reais (WAHA/Meta Cloud/
+  SMTP/SMS, Vercel AI Gateway) plugados nas interfaces já existentes em
+  `lib/outreach/adapters.ts` sem mudar a interface, mais persistência real
+  de `OutreachCampaign`/`OutreachCadence`/`OutreachEnrollment` e promoção
+  de `automation.campaigns` de `status: "planned"` pra `"stable"`.
 - **Provisioning Adapters Foundation** — implementações de verdade de
   `ProvisioningAdapter` (Supabase, Vercel/Cloudflare, VPS, DNS, Caddy,
   WhatsApp/WAHA, e-mail, IA), plugadas no executor já existente em

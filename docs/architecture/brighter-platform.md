@@ -123,12 +123,22 @@ last_updated: 2026-08-02
 │  persistência real, SEM API. lib/automation-engine/. Ver          │
 │  docs/automation/automation-engine.md.                            │
 └─────────────────────────────────────────────────────────────────┘
-                              ↓ (futuro)
+                              ↓ especializado por
 ┌─────────────────────────────────────────────────────────────────┐
-│  Outreach & AI Cadence Engine    (futuro — não iniciado)         │
-│  envio em massa e cadências multi-etapa. Hoje existe só como     │
-│  `automation.campaigns` (status: planned) no Module Engine.      │
-│  Ver docs/modules/campaigns-and-cadences.md.                     │
+│  Outreach & AI Cadence Engine    (concluído — Foundation v1)     │
+│  domínio COMERCIAL de outreach/cadência: campanhas, segmentos,   │
+│  audiência, cadência multi-etapa, janela/throttling (valores     │
+│  reais do anti-ban), templates+personalização, consentimento/    │
+│  opt-out (espelha `contacts.is_blocked`/`consent`), respostas +  │
+│  classificação por IA opcional (`ai.agents`, fake/noop), handoff │
+│  humano (preview) e métricas — domínio puro de simulação         │
+│  determinística. TODA campanha exige `automation.campaigns`      │
+│  (status: planned) — nunca autorizada em produção nesta          │
+│  Foundation. Integra (sem duplicar) Billing/Monitoring/Control   │
+│  Plane e um view model pro Automation Engine (nunca um           │
+│  `WorkflowDefinition` real). SEM envio real, SEM IA real, SEM    │
+│  agendamento real, SEM persistência real, SEM API.               │
+│  lib/outreach/. Ver docs/outreach/outreach-engine.md.            │
 └─────────────────────────────────────────────────────────────────┘
                               ↓ (futuro)
 ┌─────────────────────────────────────────────────────────────────┐
@@ -150,9 +160,10 @@ last_updated: 2026-08-02
 
 **Nota sobre IA:** IA não é uma engine própria nesta arquitetura — é uma
 capacidade opcional consumida pelos módulos `ai.agents`/`ai.memory`/
-`ai.rag` (`lib/modules/catalog.ts`) e por futuros módulos de Outreach/
-Atendimento/Comercial. Removida do roadmap como fundação estrutural
-independente (ver ROADMAP.md).
+`ai.rag` (`lib/modules/catalog.ts`) e por módulos específicos como o
+Outreach & AI Cadence Engine (classificação de resposta, rascunho,
+handoff), atendimento e comercial. Removida do roadmap como fundação
+estrutural independente (ver ROADMAP.md).
 
 Cada camada consome a anterior sem duplicar a sua regra: o Deployment Engine
 reusa o catálogo e o resolvedor do Module Engine em vez de redecidir "que
@@ -234,3 +245,4 @@ o que referenciar além do valor em si.
 | Monitoring Engine | `lib/monitoring/`, `app/app/settings/monitoramento/`, `scripts/generate-monitoring-summary.ts` | `docs/monitoring/monitoring-engine.md`, `docs/monitoring/monitoring-lifecycle.md`, `docs/monitoring/incidents.md`, `docs/monitoring/check-catalog.md` |
 | Billing Engine | `lib/billing/`, `app/app/settings/billing/`, `scripts/generate-billing-summary.ts` | `docs/billing/billing-engine.md`, `docs/billing/subscription-lifecycle.md`, `docs/billing/invoices-and-payments.md`, `docs/billing/entitlements-and-limits.md`, `docs/billing/provider-adapters.md` |
 | Automation Engine | `lib/automation-engine/`, `app/app/settings/automacao/`, `scripts/generate-automation-summary.ts` | `docs/automation/automation-engine.md`, `docs/automation/workflow-lifecycle.md`, `docs/automation/action-catalog.md` |
+| Outreach & AI Cadence Engine | `lib/outreach/`, `app/app/settings/outreach/`, `scripts/generate-outreach-summary.ts` | `docs/outreach/outreach-engine.md`, `docs/outreach/campaign-lifecycle.md`, `docs/outreach/cadences.md`, `docs/outreach/audience-and-consent.md`, `docs/outreach/throttling-and-windows.md`, `docs/outreach/responses-and-ai.md`, `docs/outreach/human-handoff.md`, `docs/outreach/simulation.md` |
