@@ -10,7 +10,7 @@ audited_against: origin/main @ 789dfa6 (v1.0.0, 2026-07-27)
 
 # Índice da documentação — DeskcommCRM
 
-Mapa dos **127** arquivos `.md` de `docs/`, espalhados por **24** subpastas (+8 arquivos/+1 subpasta — `docs/outreach/`, adicionados com a Outreach & AI Cadence Engine Foundation v1) — régua:
+Mapa dos **127** arquivos `.md` de `docs/`, espalhados por **24** subpastas (+8 arquivos/+1 subpasta — `docs/outreach/`, adicionados com a Outreach & AI Cadence Engine Foundation v1; +9 arquivos/+1 subpasta — `docs/marketplace/`, adicionados com a Marketplace / Module Licensing Foundation v1) — régua:
 `git ls-files 'docs/**/*.md' | wc -l`. Existe porque a documentação cresceu sem ponto
 de entrada: sem este índice, humano e agente não acham o que já foi decidido e
 reescrevem por cima.
@@ -82,7 +82,7 @@ Detalham schema SQL e payloads exatos. **Consulte antes de modelar qualquer cois
 | [`research/reference-synthesis.md`](research/reference-synthesis.md) | Arquitetura herdada da referência WAHA |
 | [`research/followup-reference-mining.md`](research/followup-reference-mining.md) | Pesquisa do motor de follow-up |
 | [`threat-model.md`](threat-model.md) | **Superfície de ataque real do self-host** |
-| [`architecture/brighter-platform.md`](architecture/brighter-platform.md) | **Brighter Platform Architecture** — mapa entre as fundações White Label Runtime → Module Engine → Deployment Engine → Tenant Engine → Provisioning Engine → Control Plane → Monitoring Engine → Billing Engine → (futuro) Outreach & AI Cadence Engine, planos comerciais Lite/Pro/Dedicated |
+| [`architecture/brighter-platform.md`](architecture/brighter-platform.md) | **Brighter Platform Architecture** — mapa entre as fundações White Label Runtime → Module Engine → Deployment Engine → Tenant Engine → Provisioning Engine → Control Plane → Monitoring Engine → Billing Engine → Automation Engine → Outreach & AI Cadence Engine → Marketplace / Module Licensing Engine, planos comerciais Lite/Pro/Dedicated |
 | [`modules/module-engine.md`](modules/module-engine.md) | Module Engine — catálogo tipado de módulos, planos de implantação (Lite/Pro/Dedicated), regras de resolução |
 | [`modules/campaigns-and-cadences.md`](modules/campaigns-and-cadences.md) | Spec futura de `automation.campaigns` (envio em massa e cadências) — **não implementado ainda** |
 | [`deployment/deployment-engine.md`](deployment/deployment-engine.md) | **Deployment Engine** — transforma config comercial (plano/módulos/marca/domínio) em manifesto técnico validado: infra, env vars (só nomes), blockers/warnings, checklist. Não provisiona nada |
@@ -114,6 +114,15 @@ Detalham schema SQL e payloads exatos. **Consulte antes de modelar qualquer cois
 | [`outreach/responses-and-ai.md`](outreach/responses-and-ai.md) | Classificação de resposta, adaptadores `ResponseClassifier`/`ResponseDraftGenerator` fake/noop — IA opcional, nunca AI Engine própria |
 | [`outreach/human-handoff.md`](outreach/human-handoff.md) | `evaluateHumanHandoff`/`deriveRecommendedOwnerAction` — preview, nunca atribui vendedor real |
 | [`outreach/simulation.md`](outreach/simulation.md) | Os 23 cenários de `simulateOutreachScenario` e a regra de exit code da CLI (`pnpm outreach:summary`) |
+| [`marketplace/marketplace-engine.md`](marketplace/marketplace-engine.md) | **Marketplace / Module Licensing Engine** — catálogo comercial, ofertas, bundles, licenças, trials, elegibilidade, entitlement e plano de ativação teórico. Distinto do Module Engine (técnico) e do Billing Engine (financeiro) — ver tabela de comparação. Sem ativação real |
+| [`marketplace/module-catalog.md`](marketplace/module-catalog.md) | Catálogo comercial e sua validação contra `MODULE_CATALOG` do Module Engine |
+| [`marketplace/offers-and-bundles.md`](marketplace/offers-and-bundles.md) | Ciclo de vida de `MarketplaceOffer` e `MarketplaceBundle` |
+| [`marketplace/licenses.md`](marketplace/licenses.md) | Estados de `LicenseStatus` e transições válidas |
+| [`marketplace/trials.md`](marketplace/trials.md) | Estados de `TrialStatus` e a regra "trial nunca passa por Billing" |
+| [`marketplace/entitlements.md`](marketplace/entitlements.md) | `evaluateModuleEligibility` (prospectivo) x `resolveMarketplaceEntitlements` (estado atual) |
+| [`marketplace/activation-plans.md`](marketplace/activation-plans.md) | `generateModuleActivationPlan` — plano teórico, nunca ativação real |
+| [`marketplace/versioning.md`](marketplace/versioning.md) | Comparação SemVer, `planVersionUpgrade`/`planVersionDowngrade` |
+| [`marketplace/simulation.md`](marketplace/simulation.md) | Os 26 cenários de `simulateMarketplaceScenario` e a regra de exit code da CLI (`pnpm marketplace:summary`) |
 
 ## 5. Design system
 

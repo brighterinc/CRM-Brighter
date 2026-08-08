@@ -117,6 +117,12 @@ const LINKS: SettingsLink[] = [
     description: "Campanhas e cadências multi-etapa com IA opcional — público, throttling, respostas e opt-out — somente leitura, sem envio real.",
     adminOnly: true,
   },
+  {
+    href: "/app/settings/modulos-licencas",
+    title: "Módulos e licenças",
+    description: "Catálogo comercial, ofertas, bundles, licenças e trials desta instalação — somente leitura, sem ativação real.",
+    adminOnly: true,
+  },
 ];
 
 export default async function SettingsHubPage() {

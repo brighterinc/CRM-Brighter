@@ -140,6 +140,23 @@ last_updated: 2026-08-02
 │  agendamento real, SEM persistência real, SEM API.               │
 │  lib/outreach/. Ver docs/outreach/outreach-engine.md.            │
 └─────────────────────────────────────────────────────────────────┘
+                              ↓ ofertado/licenciado por
+┌─────────────────────────────────────────────────────────────────┐
+│  Marketplace / Module Licensing Engine (concluído — Foundation v1)│
+│  catálogo COMERCIAL de módulos (distinto do MODULE_CATALOG        │
+│  técnico, sempre derivado dele), ofertas, bundles, licenças        │
+│  (`ModuleLicense`, 5º eixo de status — `LicenseStatus`), trials    │
+│  (nunca passam por Billing), elegibilidade prospectiva             │
+│  (`evaluateModuleEligibility`) x entitlement de estado atual        │
+│  (`resolveMarketplaceEntitlements` — nunca concede além do Module  │
+│  Engine nem do Billing), plano de ativação teórico (nunca ativa    │
+│  módulo/edita `.env`/faz deploy) e versionamento SemVer — domínio  │
+│  puro de simulação determinística (26 cenários). Integra (sem      │
+│  duplicar) Module Engine/Billing/Monitoring/Provisioning/Control   │
+│  Plane via view models. SEM ativação real, SEM cobrança real, SEM  │
+│  provisionamento real, SEM persistência real, SEM API.             │
+│  lib/marketplace/. Ver docs/marketplace/marketplace-engine.md.     │
+└─────────────────────────────────────────────────────────────────┘
                               ↓ (futuro)
 ┌─────────────────────────────────────────────────────────────────┐
 │  Persistência real (Control Plane + Monitoring + Billing) (futuro)│
@@ -246,3 +263,4 @@ o que referenciar além do valor em si.
 | Billing Engine | `lib/billing/`, `app/app/settings/billing/`, `scripts/generate-billing-summary.ts` | `docs/billing/billing-engine.md`, `docs/billing/subscription-lifecycle.md`, `docs/billing/invoices-and-payments.md`, `docs/billing/entitlements-and-limits.md`, `docs/billing/provider-adapters.md` |
 | Automation Engine | `lib/automation-engine/`, `app/app/settings/automacao/`, `scripts/generate-automation-summary.ts` | `docs/automation/automation-engine.md`, `docs/automation/workflow-lifecycle.md`, `docs/automation/action-catalog.md` |
 | Outreach & AI Cadence Engine | `lib/outreach/`, `app/app/settings/outreach/`, `scripts/generate-outreach-summary.ts` | `docs/outreach/outreach-engine.md`, `docs/outreach/campaign-lifecycle.md`, `docs/outreach/cadences.md`, `docs/outreach/audience-and-consent.md`, `docs/outreach/throttling-and-windows.md`, `docs/outreach/responses-and-ai.md`, `docs/outreach/human-handoff.md`, `docs/outreach/simulation.md` |
+| Marketplace / Module Licensing Engine | `lib/marketplace/`, `app/app/settings/modulos-licencas/`, `scripts/generate-marketplace-summary.ts` | `docs/marketplace/marketplace-engine.md`, `docs/marketplace/module-catalog.md`, `docs/marketplace/offers-and-bundles.md`, `docs/marketplace/licenses.md`, `docs/marketplace/trials.md`, `docs/marketplace/entitlements.md`, `docs/marketplace/activation-plans.md`, `docs/marketplace/versioning.md`, `docs/marketplace/simulation.md` |

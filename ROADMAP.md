@@ -147,8 +147,6 @@
   `docs/automation/workflow-lifecycle.md` e
   `docs/automation/action-catalog.md`.
 
-## Atual
-
 - **Brighter Outreach & AI Cadence Engine Foundation v1** — modela o
   domínio COMERCIAL de outreach/cadência: campanhas, segmentos, audiência,
   cadências multi-etapa (grafo de `OutreachCadenceStep`), janela de envio,
@@ -177,30 +175,65 @@
   tabela, sem migration, sem API. `lib/outreach/`. Ver
   `docs/outreach/outreach-engine.md` e os demais docs em `docs/outreach/`.
 
+- **Brighter Marketplace / Module Licensing Foundation v1** — modela a
+  OFERTA COMERCIAL de módulos e o ESTADO DA LICENÇA de cada módulo por
+  instalação: catálogo comercial (`MarketplaceModuleDefinition`, sempre
+  derivado do `MODULE_CATALOG` técnico), ofertas e bundles (nomes de
+  demonstração neutros — CRM Essencial, CRM + WhatsApp, Omnichannel,
+  Comercial Pro, Dedicated Operations), licenças (`ModuleLicense`, 5o eixo
+  de status — `LicenseStatus`, distinto de `ModuleStatus`/
+  `SubscriptionStatus`/`InstallationStatus`/`TenantCommercialStatus`),
+  trials (nunca passam por Billing), elegibilidade prospectiva
+  (`evaluateModuleEligibility`) x entitlement de estado atual
+  (`resolveMarketplaceEntitlements` — nunca concede além do Module Engine
+  nem do Billing), plano de ativação teórico (`generateModuleActivationPlan`
+  — nunca ativa módulo, nunca edita `.env`, nunca faz deploy) e
+  versionamento SemVer simplificado, como domínio puro de simulação
+  determinística. Integra (sem duplicar) as sete fundações anteriores:
+  `MODULE_CATALOG`, `resolveBillingEntitlements`, `MonitoringSnapshot`,
+  view model pra Provisioning e attach pro resumo da Control Plane.
+  Repositório in-memory (`InMemoryMarketplaceRepository`), adaptadores
+  fake/noop e simulação determinística (`simulateMarketplaceScenario`, 26
+  cenários). Tela admin somente-leitura (`/app/settings/modulos-licencas`)
+  e CLI (`pnpm marketplace:summary`). Mesma doutrina de camada de domínio
+  pura das fundações anteriores: sem ativação real, sem cobrança real, sem
+  provisionamento real, sem persistência real, sem tabela, sem migration,
+  sem API. `lib/marketplace/`. Ver `docs/marketplace/marketplace-engine.md`
+  e os demais docs em `docs/marketplace/`.
+
+## Atual
+
+Nenhuma fundação em andamento no momento — ver "Próximos" abaixo pra ordem
+alvo da próxima sessão.
+
 ## Próximos
 
 Ordem alvo, cada uma consumindo (nunca substituindo) as camadas de domínio
 das fundações anteriores — ver "Doutrina de engine" em
 `docs/architecture/brighter-platform.md`:
 
+- **Provisioning Adapters Foundation** — implementações de verdade de
+  `ProvisioningAdapter` (Supabase, Vercel/Cloudflare, VPS, DNS, Caddy,
+  WhatsApp/WAHA, e-mail, IA), plugadas no executor já existente em
+  `lib/provisioning/executor.ts` sem mudar sua interface.
 - **Automation Adapters Foundation** — implementações de verdade de
   `WorkflowActionAdapter` que de fato chamem `lib/automation/actions/*`
   (execução real das ações hoje só simuladas pela Automation Engine
   Foundation), plugadas no executor já existente em
   `lib/automation-engine/executor.ts` sem mudar sua interface. Mesmo
-  padrão da "Provisioning Adapters Foundation" abaixo.
+  padrão da "Provisioning Adapters Foundation" acima.
 - **Outreach Runtime real** — adapta `OutreachChannelAdapter`/
   `ResponseClassifier`/`ResponseDraftGenerator` reais (WAHA/Meta Cloud/
   SMTP/SMS, Vercel AI Gateway) plugados nas interfaces já existentes em
   `lib/outreach/adapters.ts` sem mudar a interface, mais persistência real
   de `OutreachCampaign`/`OutreachCadence`/`OutreachEnrollment` e promoção
   de `automation.campaigns` de `status: "planned"` pra `"stable"`.
-- **Provisioning Adapters Foundation** — implementações de verdade de
-  `ProvisioningAdapter` (Supabase, Vercel/Cloudflare, VPS, DNS, Caddy,
-  WhatsApp/WAHA, e-mail, IA), plugadas no executor já existente em
-  `lib/provisioning/executor.ts` sem mudar sua interface.
-- **Marketplace / Module Licensing Foundation** — configuração de módulos
-  pelo painel (hoje só por env var `ENABLED_MODULES`/`DISABLED_MODULES`) e
+- **Marketplace Adapters real** — implementações de verdade de
+  `ModuleActivationAdapter`/`MarketplaceBillingAdapter`/
+  `MarketplaceProvisioningAdapter` (`lib/marketplace/adapters.ts`, hoje só
+  Noop/Fake), configuração de módulos pelo painel (hoje só por env var
+  `ENABLED_MODULES`/`DISABLED_MODULES`), persistência real de
+  `ModuleLicense`/`ModuleTrial`/`MarketplaceOffer`/`MarketplaceBundle` e
   descoberta/instalação de módulos de terceiros.
 - **Adaptadores reais de billing** — implementações de verdade de
   `BillingProviderAdapter` (InfinitePay/Stripe/Mercado Pago/Pix/boleto),

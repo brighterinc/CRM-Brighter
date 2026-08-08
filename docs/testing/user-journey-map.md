@@ -293,6 +293,32 @@ no dia a dia de um admin. Não tem botão de disparo real — só texto
 
 ---
 
+## J15 — Configurações › Módulos e licenças (Marketplace / Module Licensing Engine) `[P2]`
+
+Contexto do código: tela somente leitura, admin-only
+(`app/app/settings/modulos-licencas/page.tsx`), acessível por
+`/app/settings` → "Módulos e licenças". Renderiza `generateMarketplaceSummary()`
+(`lib/marketplace/summary.ts`) sobre o catálogo comercial
+(`buildMarketplaceCatalog()`), 1 licença de demonstração de `core.crm` por
+instalação (`createDemoLicenses`) e 1 trial de demonstração — nesta
+Foundation não existe licença/trial real persistida nem ativação real de
+módulo. `[P2]`: tela de diagnóstico de plataforma interna, mesma cadência
+de Faturamento/Automação/Provisionamento no dia a dia de um admin. Não tem
+botão de ativar/comprar real — só texto "Simulação disponível via CLI".
+
+| # | Caso | Expectativa |
+|---|------|-------------|
+| J15.1 | Admin abre Configurações → Módulos e licenças | tela carrega sem erro com instalação/plano/catálogo/licenças/trials/bundles |
+| J15.2 | Blockers de entitlement | populado quando módulos do catálogo não têm licença/compra correspondente na assinatura de demonstração — comportamento ESPERADO (mesma doutrina do "automation.campaigns não autorizado" de J14.3), não um bug |
+| J15.3 | Atendente (role agent/manager) tenta acessar `/app/settings/modulos-licencas` | bloqueado (`adminOnly`), mesmo padrão das demais telas de Configurações |
+| J15.4 | Links "Módulos", "Faturamento", "Provisionamento", "Control Plane" e "Operação" na tela | levam pras telas certas |
+| J15.5 | Link "Módulos e licenças" na lista de Configurações | aparece só para admin, com a descrição correta |
+| J15.6 | Texto "Simulação disponível via CLI" | presente; nenhum botão de "ativar agora"/"comprar agora"/checkout na tela |
+| J15.7 | Resumo em Markdown exibido na tela | bate com `pnpm marketplace:summary -- ... --format markdown` pros mesmos parâmetros (mesma função `renderMarketplaceSummaryMarkdown`) |
+| J15.8 | Tabela de catálogo | mostra todos os módulos do `MARKETPLACE_CATALOG_SEED`, com status técnico/comercial e entitlement coerentes (`automation.campaigns` sempre "não autorizado" — `planned`) |
+
+---
+
 ## Achados do mapeamento (pré-execução) — candidatos a correção
 
 | ID | Achado | Origem | Severidade |
