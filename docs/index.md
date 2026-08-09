@@ -10,7 +10,7 @@ audited_against: origin/main @ 789dfa6 (v1.0.0, 2026-07-27)
 
 # Índice da documentação — DeskcommCRM
 
-Mapa dos **127** arquivos `.md` de `docs/`, espalhados por **24** subpastas (+8 arquivos/+1 subpasta — `docs/outreach/`, adicionados com a Outreach & AI Cadence Engine Foundation v1; +9 arquivos/+1 subpasta — `docs/marketplace/`, adicionados com a Marketplace / Module Licensing Foundation v1) — régua:
+Mapa dos **135** arquivos `.md` de `docs/`, espalhados por **25** subpastas (+8 arquivos/+1 subpasta — `docs/outreach/`, adicionados com a Outreach & AI Cadence Engine Foundation v1; +9 arquivos/+1 subpasta — `docs/marketplace/`, adicionados com a Marketplace / Module Licensing Foundation v1; +8 arquivos/+1 subpasta — `docs/provisioning-adapters/`, adicionados com a Provisioning Adapters Foundation v1) — régua:
 `git ls-files 'docs/**/*.md' | wc -l`. Existe porque a documentação cresceu sem ponto
 de entrada: sem este índice, humano e agente não acham o que já foi decidido e
 reescrevem por cima.
@@ -123,6 +123,14 @@ Detalham schema SQL e payloads exatos. **Consulte antes de modelar qualquer cois
 | [`marketplace/activation-plans.md`](marketplace/activation-plans.md) | `generateModuleActivationPlan` — plano teórico, nunca ativação real |
 | [`marketplace/versioning.md`](marketplace/versioning.md) | Comparação SemVer, `planVersionUpgrade`/`planVersionDowngrade` |
 | [`marketplace/simulation.md`](marketplace/simulation.md) | Os 26 cenários de `simulateMarketplaceScenario` e a regra de exit code da CLI (`pnpm marketplace:summary`) |
+| [`provisioning-adapters/overview.md`](provisioning-adapters/overview.md) | **Provisioning Adapters Engine** — traduz etapa abstrata do Provisioning Engine pra provider concreto (Supabase/Vercel/DNS/VPS/Docker/Reverse Proxy/Redis/Email/WhatsApp/Chatwoot/Evolution/WAHA/Noop/Fake). Só contrato tipado, blueprint, simulador — sem execução real |
+| [`provisioning-adapters/provider-contract.md`](provisioning-adapters/provider-contract.md) | Contrato `ProvisioningProviderAdapter` — `executeReal` sempre lança `RealProvisioningDisabledError` |
+| [`provisioning-adapters/capabilities.md`](provisioning-adapters/capabilities.md) | Catálogo de capabilities por provider e o mapeamento etapa→provider (`STEP_ADAPTER_MAP`) |
+| [`provisioning-adapters/dry-run.md`](provisioning-adapters/dry-run.md) | `executeProvisioningDryRun` — ordem, dependências, propagação de bloqueio, idempotência |
+| [`provisioning-adapters/rollback.md`](provisioning-adapters/rollback.md) | `generateProvisioningRollbackPreview` — o que é revertível hoje, o que nunca é |
+| [`provisioning-adapters/security.md`](provisioning-adapters/security.md) | Sanitização, garantias "nunca real", RBAC da tela admin |
+| [`provisioning-adapters/providers.md`](provisioning-adapters/providers.md) | Os 14 blueprints de provider |
+| [`provisioning-adapters/simulation.md`](provisioning-adapters/simulation.md) | Os 22 cenários de `simulateProvisioningAdapterScenario` e a regra de exit code da CLI (`pnpm provisioning:adapters`) |
 
 ## 5. Design system
 

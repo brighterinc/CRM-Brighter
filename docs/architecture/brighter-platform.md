@@ -157,21 +157,46 @@ last_updated: 2026-08-02
 │  provisionamento real, SEM persistência real, SEM API.             │
 │  lib/marketplace/. Ver docs/marketplace/marketplace-engine.md.     │
 └─────────────────────────────────────────────────────────────────┘
+                              ↓ traduzido pra provider por
+┌─────────────────────────────────────────────────────────────────┐
+│  Provisioning Adapters Engine    (concluído — Foundation v1)     │
+│  traduz etapa ABSTRATA do Provisioning Engine pra provider        │
+│  CONCRETO (Supabase/Vercel/DNS/VPS/Docker/Reverse Proxy/Redis/    │
+│  Email/WhatsApp/Chatwoot/Evolution/WAHA/Noop/Fake) — só contrato  │
+│  tipado, blueprint, simulador determinístico. Catálogo de         │
+│  capabilities por provider, mapeamento etapa→provider/operação    │
+│  (17 estáticas, 2 condicionadas ao `target`, 12 sem provider      │
+│  nesta Foundation), registry sem singleton mutável, executor de   │
+│  dry-run que respeita ordem/dependências/blockers (propaga        │
+│  bloqueio em cascata), rollback preview por provider, 22 cenários │
+│  de simulação. `mode: "real"` é tipo reservado — `executeReal()`  │
+│  sempre lança `RealProvisioningDisabledError`. Integra (sem        │
+│  duplicar) Provisioning Engine/Marketplace/Control Plane. SEM      │
+│  provider real executado, SEM API externa chamada, SEM Docker      │
+│  executado, SEM persistência real, SEM API.                        │
+│  lib/provisioning-adapters/. Ver                                   │
+│  docs/provisioning-adapters/overview.md.                           │
+└─────────────────────────────────────────────────────────────────┘
                               ↓ (futuro)
 ┌─────────────────────────────────────────────────────────────────┐
-│  Persistência real (Control Plane + Monitoring + Billing) (futuro)│
+│  Persistência + Runtime real (Control Plane + Provisioning +      │
+│  Monitoring + Billing)                                  (futuro) │
 │  PRIMEIRO consumidor real de persistência de `Installation`/     │
 │  `Tenant`/`ProvisioningPlan`/`MonitoringSnapshot`/                │
 │  `MonitoringIncident`/`BillingSubscription`/`BillingInvoice`      │
 │  (tabela, migration, banco próprio da Brighter — nunca dentro     │
-│  do banco de um cliente) e de adaptadores reais de infra          │
-│  (Supabase/Vercel/VPS/DNS/Caddy/WhatsApp/e-mail/IA) e de           │
+│  do banco de um cliente), de um vault de credenciais de provider, │
+│  e de implementações REAIS de `ProvisioningProviderAdapter`       │
+│  (Supabase/Vercel/VPS/DNS/Caddy/Docker/Redis/WhatsApp-WAHA-       │
+│  Evolution-Chatwoot/e-mail) plugadas no registry já existente em   │
+│  `lib/provisioning-adapters/` sem mudar sua interface, e de        │
 │  pagamento (InfinitePay/Stripe/Mercado Pago) que de fato           │
 │  executam o `ProvisioningPlan`/os checks de monitoramento/a        │
 │  cobrança. Por doutrina, CONSOME as camadas de domínio já          │
 │  existentes (tipos, validação, readiness, planner, executor,       │
 │  evaluator, `InstallationRepository`/`MonitoringRepository`/        │
-│  `BillingRepository`), nunca as substitui. Ver ROADMAP.md.          │
+│  `BillingRepository`/`ProvisioningAdapterRepository`), nunca as     │
+│  substitui. Ver ROADMAP.md.                                        │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -264,3 +289,4 @@ o que referenciar além do valor em si.
 | Automation Engine | `lib/automation-engine/`, `app/app/settings/automacao/`, `scripts/generate-automation-summary.ts` | `docs/automation/automation-engine.md`, `docs/automation/workflow-lifecycle.md`, `docs/automation/action-catalog.md` |
 | Outreach & AI Cadence Engine | `lib/outreach/`, `app/app/settings/outreach/`, `scripts/generate-outreach-summary.ts` | `docs/outreach/outreach-engine.md`, `docs/outreach/campaign-lifecycle.md`, `docs/outreach/cadences.md`, `docs/outreach/audience-and-consent.md`, `docs/outreach/throttling-and-windows.md`, `docs/outreach/responses-and-ai.md`, `docs/outreach/human-handoff.md`, `docs/outreach/simulation.md` |
 | Marketplace / Module Licensing Engine | `lib/marketplace/`, `app/app/settings/modulos-licencas/`, `scripts/generate-marketplace-summary.ts` | `docs/marketplace/marketplace-engine.md`, `docs/marketplace/module-catalog.md`, `docs/marketplace/offers-and-bundles.md`, `docs/marketplace/licenses.md`, `docs/marketplace/trials.md`, `docs/marketplace/entitlements.md`, `docs/marketplace/activation-plans.md`, `docs/marketplace/versioning.md`, `docs/marketplace/simulation.md` |
+| Provisioning Adapters Engine | `lib/provisioning-adapters/`, `app/app/settings/provisioning-adapters/`, `scripts/generate-provisioning-adapters-summary.ts` | `docs/provisioning-adapters/overview.md`, `docs/provisioning-adapters/provider-contract.md`, `docs/provisioning-adapters/capabilities.md`, `docs/provisioning-adapters/dry-run.md`, `docs/provisioning-adapters/rollback.md`, `docs/provisioning-adapters/security.md`, `docs/provisioning-adapters/providers.md`, `docs/provisioning-adapters/simulation.md` |

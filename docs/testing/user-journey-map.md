@@ -319,6 +319,32 @@ botão de ativar/comprar real — só texto "Simulação disponível via CLI".
 
 ---
 
+## J16 — Configurações › Adaptadores de provisionamento (Provisioning Adapters Engine) `[P2]`
+
+Contexto do código: tela somente leitura, admin-only
+(`app/app/settings/provisioning-adapters/page.tsx`), acessível por
+`/app/settings` → "Adaptadores de provisionamento". Roda
+`executeProvisioningDryRun()` (`lib/provisioning-adapters/executor.ts`)
+sobre o `ProvisioningPlan` da instalação ATUAL (nunca uma instalação de
+demonstração), com o registry padrão dos 14 providers
+(`createDefaultProvisioningAdapterRegistry()`) — nesta Foundation nenhum
+provider é executado de verdade. `[P2]`: tela de diagnóstico de plataforma
+interna, mesma cadência de Provisionamento/Módulos e licenças no dia a dia
+de um admin. Não tem botão de "executar real" — só texto "Simulação
+disponível via CLI".
+
+| # | Caso | Expectativa |
+|---|------|-------------|
+| J16.1 | Admin abre Configurações → Adaptadores de provisionamento | tela carrega sem erro com instalação/plano/etapas/cobertura por provider/rollback preview |
+| J16.2 | Atendente (role agent/manager) tenta acessar `/app/settings/provisioning-adapters` | bloqueado (redirect `/403`), mesmo padrão das demais telas de Configurações |
+| J16.3 | Links "Provisionamento", "Módulos e licenças", "Control Plane", "Monitoramento" e "Deployment" na tela | levam pras telas certas |
+| J16.4 | Texto "Simulação disponível via CLI" | presente; nenhum botão de "executar real" na tela |
+| J16.5 | Resumo em Markdown exibido na tela | bate com `pnpm provisioning:adapters -- --scenario ... --format markdown` pro mesmo cenário (mesma função `renderProvisioningAdapterSummaryMarkdown`) |
+| J16.6 | Tabela "Cobertura por provider" | mostra só os providers efetivamente tocados pela instalação atual, nunca os 14 fixos (steps sem manifest.infrastructure correspondente não entram) |
+| J16.7 | Etapas sem provider nesta Foundation (`validate_tenant`, `create_owner`, etc.) | aparecem como badge "unmapped", nunca contam como blocker |
+
+---
+
 ## Achados do mapeamento (pré-execução) — candidatos a correção
 
 | ID | Achado | Origem | Severidade |

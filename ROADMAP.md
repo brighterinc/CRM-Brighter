@@ -201,27 +201,84 @@
   sem API. `lib/marketplace/`. Ver `docs/marketplace/marketplace-engine.md`
   e os demais docs em `docs/marketplace/`.
 
+- **Brighter Provisioning Adapters Foundation v1** — traduz uma etapa
+  ABSTRATA do Provisioning Engine pra um provider CONCRETO (Supabase,
+  Vercel, DNS, VPS, Docker, Reverse Proxy, Redis, Email, WhatsApp,
+  Chatwoot, Evolution, WAHA, Noop, Fake) — só como contrato tipado,
+  blueprint e simulador determinístico. Catálogo de capabilities por
+  provider, mapeamento etapa→provider/operação (17 etapas mapeadas
+  estaticamente, 2 condicionadas ao `target` — `configure_domain`/
+  `configure_ssl` —, 12 sem provider nesta fundação porque não há
+  "monitoring"/"ai" na lista de 14), registry sem singleton mutável,
+  mapper puro com idempotency key SHA-256, executor de dry-run que
+  respeita ordem/dependências/blockers do `ProvisioningPlan` (propagando
+  bloqueio em cascata quando um provider está ausente), rollback preview
+  por provider, repositório in-memory, e simulação determinística
+  (`simulateProvisioningAdapterScenario`, 22 cenários). `mode: "real"`
+  existe só como tipo reservado — `executeReal()` sempre lança
+  `RealProvisioningDisabledError`. Integra (sem duplicar) o Provisioning
+  Engine, o Marketplace (deriva providers tocados a partir de
+  `ModuleDefinition.requires`, nunca faz parsing de texto livre) e a
+  Control Plane. Tela admin somente-leitura
+  (`/app/settings/provisioning-adapters`) e CLI
+  (`pnpm provisioning:adapters`). Mesma doutrina de camada de domínio pura
+  das fundações anteriores: nenhum provider real executado, nenhuma API
+  externa chamada, nenhum Docker executado, sem persistência real, sem
+  tabela, sem migration. `lib/provisioning-adapters/`. Ver
+  `docs/provisioning-adapters/overview.md` e os demais docs em
+  `docs/provisioning-adapters/`.
+
 ## Atual
 
-Nenhuma fundação em andamento no momento — ver "Próximos" abaixo pra ordem
-alvo da próxima sessão.
+Nenhuma fundação estrutural em andamento no momento — a última planejada
+(Provisioning Adapters Foundation v1) está concluída. Ver "Próxima fase"
+abaixo.
 
-## Próximos
+## Próxima fase — Runtime real / Control Plane
 
-Ordem alvo, cada uma consumindo (nunca substituindo) as camadas de domínio
-das fundações anteriores — ver "Doutrina de engine" em
-`docs/architecture/brighter-platform.md`:
+Com as 12 fundações estruturais completas (contratos tipados, blueprints,
+simuladores determinísticos — nunca execução real), a próxima fase deixa de
+ser "criar fundação nova" e passa a ser "dar execução real às fundações que
+já existem", sempre implementando as MESMAS interfaces já definidas (nunca
+reimplementando tipo/validação/simulação já existente). Cross-cutting, antes
+de qualquer adapter real:
 
-- **Provisioning Adapters Foundation** — implementações de verdade de
-  `ProvisioningAdapter` (Supabase, Vercel/Cloudflare, VPS, DNS, Caddy,
-  WhatsApp/WAHA, e-mail, IA), plugadas no executor já existente em
-  `lib/provisioning/executor.ts` sem mudar sua interface.
+- **Persistência real** de `Tenant`/`Installation`/`ProvisioningPlan`/
+  `MonitoringSnapshot`/`BillingSubscription`/`BillingInvoice` (tabela,
+  migration, banco próprio da Brighter — nunca dentro do banco de um
+  cliente), implementando as MESMAS interfaces `InstallationRepository`/
+  `MonitoringRepository`/`BillingRepository`/`ProvisioningAdapterRepository`
+  já definidas.
+- **Provider credentials vault** — armazenamento seguro das credenciais que
+  os adapters reais vão precisar (chave Supabase, token Vercel, API key
+  Hostinger/Cloudflare, etc.) — nunca no `Tenant`/`Installation` (que só
+  guardam referência pública, nunca segredo).
+- **Workers, scheduler, filas** — infraestrutura de execução assíncrona pra
+  rodar provisionamento/automação/outreach de verdade fora do request-response.
+- **Onboarding automatizado** — fluxo ponta a ponta que efetivamente cria
+  uma instalação nova, usando os runtimes reais abaixo.
+- **Observabilidade e auditoria** — trilha real de quem executou o quê,
+  quando, com qual resultado (hoje só simulado nos `*_log`/`summary.ts` de
+  cada fundação).
+- **Rollback real** — executar de fato os passos hoje só descritos como
+  texto em cada `rollbackPreview`.
+- **Aprovação humana para ações destrutivas** — gate obrigatório antes de
+  qualquer rollback/desativação real acontecer.
+
+Runtimes por domínio, cada um plugando um adapter REAL na interface já
+existente, sem mudar a interface:
+
+- **Provisioning runtime real** — implementações de verdade de
+  `ProvisioningProviderAdapter` (Supabase, Vercel/Cloudflare, VPS, DNS,
+  Caddy, Docker, Redis, WhatsApp/WAHA/Evolution/Chatwoot, e-mail),
+  plugadas no registry já existente em `lib/provisioning-adapters/` sem
+  mudar sua interface.
 - **Automation Adapters Foundation** — implementações de verdade de
   `WorkflowActionAdapter` que de fato chamem `lib/automation/actions/*`
   (execução real das ações hoje só simuladas pela Automation Engine
   Foundation), plugadas no executor já existente em
   `lib/automation-engine/executor.ts` sem mudar sua interface. Mesmo
-  padrão da "Provisioning Adapters Foundation" acima.
+  padrão do "Provisioning runtime real" acima.
 - **Outreach Runtime real** — adapta `OutreachChannelAdapter`/
   `ResponseClassifier`/`ResponseDraftGenerator` reais (WAHA/Meta Cloud/
   SMTP/SMS, Vercel AI Gateway) plugados nas interfaces já existentes em
@@ -238,14 +295,6 @@ das fundações anteriores — ver "Doutrina de engine" em
 - **Adaptadores reais de billing** — implementações de verdade de
   `BillingProviderAdapter` (InfinitePay/Stripe/Mercado Pago/Pix/boleto),
   plugadas em `lib/billing/adapters.ts` sem mudar sua interface.
-- **Persistência real da Control Plane** — primeiro consumidor real de
-  **persistência** de `Installation`/`Tenant`/`ProvisioningPlan`/
-  `MonitoringSnapshot`/`BillingSubscription`/`BillingInvoice` (tabela,
-  migration, banco próprio da Brighter — nunca dentro do banco de um
-  cliente), implementando as MESMAS interfaces `InstallationRepository`/
-  `MonitoringRepository`/`BillingRepository` já definidas (ex.: um futuro
-  `SupabaseInstallationRepository`), nunca reimplementando tipos/
-  validação/readiness já existentes.
 - **Adaptadores reais de monitoramento** — implementações de verdade de
   `MonitoringAdapter` (ping HTTP, resolução DNS, validade SSL, Supabase,
   Redis, WAHA), plugadas no motor já existente em `lib/monitoring/` sem
