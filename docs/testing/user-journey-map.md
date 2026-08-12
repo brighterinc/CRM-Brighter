@@ -345,6 +345,35 @@ disponível via CLI".
 
 ---
 
+## J17 — Configurações › Control Plane (Persistência) `[P2]`
+
+Contexto do código: tela somente leitura, **platform-admin only**
+(`app/app/settings/control-plane/persistence/page.tsx`, guard
+`requirePlatformAdmin()` — MFA AAL2 forçada, diferente do guard mais fraco
+de `/app/settings/control-plane`), lê `createControlPlaneRepositories("database")`
+contra as 8 tabelas `control_plane_*` (migration `0098`). `[P2]`: tela de
+diagnóstico interno da Brighter, não do dia a dia de um tenant.
+
+**NÃO EXECUTADO NESTA SESSÃO** — migration `0098` ainda não foi aplicada a
+nenhum banco (proibido nesta sessão, ver
+`docs/control-plane-persistence/migration.md`); rodar estes casos via
+Playwright contra um banco sem as tabelas quebraria com erro de schema, não
+provaria nada sobre a UI. Registrado aqui como cobertura PLANEJADA — fica
+pendente até a migration ser aplicada e um banco de teste com fixtures
+reais existir.
+
+| # | Caso | Expectativa |
+|---|------|-------------|
+| J17.1 | Admin de tenant (role `admin` numa org qualquer, sem `platform_admins`) acessa `/app/settings/control-plane/persistence` | bloqueado — redirect `/admin/forbidden` (mesmo guard de `/admin/*`) |
+| J17.2 | Platform-admin sem MFA AAL2 acessa a rota | redirect `/login/mfa?next=/admin` |
+| J17.3 | Platform-admin autenticado (AAL2) acessa a rota | tela carrega com as 6 seções (tenants/installations/deployments/runs/connections/secret references/events) |
+| J17.4 | Banco sem nenhum registro ainda (estado imediatamente pós-migration) | cada tabela mostra linha vazia explícita ("Nenhum X persistido ainda"), nunca tela quebrada |
+| J17.5 | Seção "Secret references" | mostra `reference`/`type`/`provider`/`vault_provider`/`status`; **nunca** `vault_key` em nenhuma célula/atributo/tooltip da página renderizada |
+| J17.6 | `pnpm control:persistence -- --mode smoke` rodado localmente | conclui com "✓ fluxo completo in-memory OK — nenhum banco real tocado", sem exigir `.env` |
+| J17.7 | `pnpm control:persistence -- --mode schema` | lista as 8 tabelas com RLS/FKs, sem tocar repository nenhum |
+
+---
+
 ## Achados do mapeamento (pré-execução) — candidatos a correção
 
 | ID | Achado | Origem | Severidade |

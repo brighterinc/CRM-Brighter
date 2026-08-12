@@ -1,7 +1,7 @@
 ---
 type: architecture
 status: v1 — fundação
-last_updated: 2026-08-02
+last_updated: 2026-08-12
 ---
 
 # Brighter Platform
@@ -55,8 +55,8 @@ last_updated: 2026-08-02
 │  das fundações anteriores — camada de domínio pura, SEM          │
 │  persistência real (plano recalculado em memória a cada          │
 │  chamada) e SEM adaptador real de infra (só fake/noop). A        │
-│  persistência real de planos/execuções fica pra Control Plane    │
-│  (abaixo), quando ganhar persistência real. lib/provisioning/.   │
+│  persistência real de runs/steps já existe — ver Control Plane   │
+│  Persistence + Credentials Vault, abaixo. lib/provisioning/.     │
 │  Ver docs/provisioning/provisioning-engine.md.                   │
 └─────────────────────────────────────────────────────────────────┘
                               ↓ agregado por
@@ -177,26 +177,44 @@ last_updated: 2026-08-02
 │  lib/provisioning-adapters/. Ver                                   │
 │  docs/provisioning-adapters/overview.md.                           │
 └─────────────────────────────────────────────────────────────────┘
+                              ↓ persistido por
+┌─────────────────────────────────────────────────────────────────┐
+│  Control Plane Persistence + Credentials Vault  (concluído — v1) │
+│  PRIMEIRO consumidor real de persistência de `Tenant`/            │
+│  `Installation`/`DeploymentManifest` (histórico)/`ProvisioningPlan`│
+│  — 8 tabelas `control_plane_*` (migration 0098), banco PRÓPRIO da │
+│  Brighter, nunca dentro do banco de um cliente. RLS restrita a    │
+│  `fn_is_platform_admin()` em todas (nenhuma tem `organization_id` │
+│  — plataforma, não tenant da CRM). Credentials Vault (referência  │
+│  de segredo, NUNCA o valor — `createReference`/                   │
+│  `resolveReferenceMetadata`/`rotateReference`/`revokeReference`/  │
+│  `validateReference`, sem `getSecretValue()`), `Database*Repository`│
+│  ao lado dos `InMemory*` já existentes (troca explícita via        │
+│  factory), mappers domain↔row, `assertSafePersistencePayload`      │
+│  fail-closed, camada de serviço com audit log + operation events.  │
+│  AINDA NÃO conecta nenhum provider real — `mode` de                │
+│  `control_plane_provider_connections` continua `dry_run`/          │
+│  `simulation`. lib/control-plane-persistence/. Ver                 │
+│  docs/control-plane-persistence/overview.md.                       │
+└─────────────────────────────────────────────────────────────────┘
                               ↓ (futuro)
 ┌─────────────────────────────────────────────────────────────────┐
-│  Persistência + Runtime real (Control Plane + Provisioning +      │
-│  Monitoring + Billing)                                  (futuro) │
-│  PRIMEIRO consumidor real de persistência de `Installation`/     │
-│  `Tenant`/`ProvisioningPlan`/`MonitoringSnapshot`/                │
-│  `MonitoringIncident`/`BillingSubscription`/`BillingInvoice`      │
-│  (tabela, migration, banco próprio da Brighter — nunca dentro     │
-│  do banco de um cliente), de um vault de credenciais de provider, │
-│  e de implementações REAIS de `ProvisioningProviderAdapter`       │
+│  Provider Credentials Runtime + Real Adapters            (futuro) │
+│  Implementações REAIS de `ProvisioningProviderAdapter`            │
 │  (Supabase/Vercel/VPS/DNS/Caddy/Docker/Redis/WhatsApp-WAHA-       │
 │  Evolution-Chatwoot/e-mail) plugadas no registry já existente em   │
-│  `lib/provisioning-adapters/` sem mudar sua interface, e de        │
-│  pagamento (InfinitePay/Stripe/Mercado Pago) que de fato           │
-│  executam o `ProvisioningPlan`/os checks de monitoramento/a        │
-│  cobrança. Por doutrina, CONSOME as camadas de domínio já          │
-│  existentes (tipos, validação, readiness, planner, executor,       │
-│  evaluator, `InstallationRepository`/`MonitoringRepository`/        │
-│  `BillingRepository`/`ProvisioningAdapterRepository`), nunca as     │
-│  substitui. Ver ROADMAP.md.                                        │
+│  `lib/provisioning-adapters/` sem mudar sua interface, um          │
+│  `vaultProvider` real (ex.: Postgres `pgp_sym_encrypt`, mesmo       │
+│  padrão do OAuth do Nuvemshop) por trás do Credentials Vault já    │
+│  persistido acima, persistência real de `MonitoringSnapshot`/      │
+│  `MonitoringIncident`/`BillingSubscription`/`BillingInvoice`, e de  │
+│  pagamento (InfinitePay/Stripe/Mercado Pago) que de fato            │
+│  executam o `ProvisioningPlan`/os checks de monitoramento/a         │
+│  cobrança. Por doutrina, CONSOME as camadas de domínio já           │
+│  existentes (tipos, validação, readiness, planner, executor,        │
+│  evaluator, `InstallationRepository`/`MonitoringRepository`/         │
+│  `BillingRepository`/`ProvisioningAdapterRepository`), nunca as      │
+│  substitui. Ver ROADMAP.md.                                         │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -290,3 +308,4 @@ o que referenciar além do valor em si.
 | Outreach & AI Cadence Engine | `lib/outreach/`, `app/app/settings/outreach/`, `scripts/generate-outreach-summary.ts` | `docs/outreach/outreach-engine.md`, `docs/outreach/campaign-lifecycle.md`, `docs/outreach/cadences.md`, `docs/outreach/audience-and-consent.md`, `docs/outreach/throttling-and-windows.md`, `docs/outreach/responses-and-ai.md`, `docs/outreach/human-handoff.md`, `docs/outreach/simulation.md` |
 | Marketplace / Module Licensing Engine | `lib/marketplace/`, `app/app/settings/modulos-licencas/`, `scripts/generate-marketplace-summary.ts` | `docs/marketplace/marketplace-engine.md`, `docs/marketplace/module-catalog.md`, `docs/marketplace/offers-and-bundles.md`, `docs/marketplace/licenses.md`, `docs/marketplace/trials.md`, `docs/marketplace/entitlements.md`, `docs/marketplace/activation-plans.md`, `docs/marketplace/versioning.md`, `docs/marketplace/simulation.md` |
 | Provisioning Adapters Engine | `lib/provisioning-adapters/`, `app/app/settings/provisioning-adapters/`, `scripts/generate-provisioning-adapters-summary.ts` | `docs/provisioning-adapters/overview.md`, `docs/provisioning-adapters/provider-contract.md`, `docs/provisioning-adapters/capabilities.md`, `docs/provisioning-adapters/dry-run.md`, `docs/provisioning-adapters/rollback.md`, `docs/provisioning-adapters/security.md`, `docs/provisioning-adapters/providers.md`, `docs/provisioning-adapters/simulation.md` |
+| Control Plane Persistence + Credentials Vault | `lib/control-plane-persistence/`, `app/app/settings/control-plane/persistence/`, `scripts/control-plane-persistence-summary.ts`, `supabase/migrations/20260811000000_0098_control_plane_persistence.sql` | `docs/control-plane-persistence/overview.md`, `docs/control-plane-persistence/schema.md`, `docs/control-plane-persistence/security.md`, `docs/control-plane-persistence/credentials-vault.md`, `docs/control-plane-persistence/repositories.md`, `docs/control-plane-persistence/rls.md`, `docs/control-plane-persistence/migration.md`, `docs/control-plane-persistence/runtime-boundary.md` |

@@ -186,4 +186,17 @@ export type AuditAction =
   | "pipeline.stage_updated"
   | "pipeline.stage_archived"
   | "system.update_requested"
-  | "system.update_finished";
+  | "system.update_finished"
+  | "control_plane.tenant_created"
+  | "control_plane.tenant_updated"
+  | "control_plane.installation_created"
+  | "control_plane.installation_updated"
+  | "control_plane.deployment_recorded"
+  | "control_plane.provisioning_run_created"
+  | "control_plane.provisioning_step_recorded"
+  | "control_plane.provider_connection_recorded"
+  | "control_plane.secret_reference_created"
+  | "control_plane.secret_reference_rotated"
+  | "control_plane.secret_reference_revoked"
+  | "control_plane.operation_event_recorded"
+  | "control_plane.unsafe_payload_rejected";

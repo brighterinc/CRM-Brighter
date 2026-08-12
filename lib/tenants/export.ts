@@ -44,6 +44,32 @@ export function sanitizeDeep(value: unknown): unknown {
   return value;
 }
 
+/**
+ * Acha (sem remover) os dot-paths de toda chave que bate `SENSITIVE_KEY_PATTERN`
+ * em qualquer profundidade — usado por quem precisa RECUSAR um payload em vez
+ * de silenciosamente mascará-lo (ver `assertSafePersistencePayload` em
+ * `lib/control-plane-persistence/safe-persistence.ts`). Índice de array vira
+ * segmento numérico do path (ex.: `"items.2.token"`).
+ */
+export function findSensitiveKeyPaths(value: unknown, basePath = ""): string[] {
+  if (Array.isArray(value)) {
+    return value.flatMap((item, index) => findSensitiveKeyPaths(item, basePath ? `${basePath}.${index}` : String(index)));
+  }
+  if (isPlainObject(value)) {
+    const found: string[] = [];
+    for (const [key, v] of Object.entries(value)) {
+      const path = basePath ? `${basePath}.${key}` : key;
+      if (SENSITIVE_KEY_PATTERN.test(key)) {
+        found.push(path);
+        continue;
+      }
+      found.push(...findSensitiveKeyPaths(v, path));
+    }
+    return found;
+  }
+  return [];
+}
+
 export type TenantSafeExport = {
   id: string;
   clientName: string;

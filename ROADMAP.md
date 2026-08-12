@@ -228,78 +228,79 @@
   `docs/provisioning-adapters/overview.md` e os demais docs em
   `docs/provisioning-adapters/`.
 
-## Atual
+**FOUNDATIONS: concluídas.** As 12 fundações estruturais (contratos
+tipados, blueprints, simuladores determinísticos — nunca execução real)
+mais a Control Plane Persistence abaixo (primeira a ganhar persistência
+real de verdade) fecham a fase de "criar fundação nova". Daqui em diante é
+"dar execução real às fundações que já existem", sempre implementando as
+MESMAS interfaces já definidas (nunca reimplementando tipo/validação/
+simulação já existente).
 
-Nenhuma fundação estrutural em andamento no momento — a última planejada
-(Provisioning Adapters Foundation v1) está concluída. Ver "Próxima fase"
-abaixo.
+## RUNTIME REAL / CONTROL PLANE
 
-## Próxima fase — Runtime real / Control Plane
+### Atual
 
-Com as 12 fundações estruturais completas (contratos tipados, blueprints,
-simuladores determinísticos — nunca execução real), a próxima fase deixa de
-ser "criar fundação nova" e passa a ser "dar execução real às fundações que
-já existem", sempre implementando as MESMAS interfaces já definidas (nunca
-reimplementando tipo/validação/simulação já existente). Cross-cutting, antes
-de qualquer adapter real:
+**Control Plane Persistence + Credentials Vault** — persistência real
+(Supabase, banco próprio da Brighter, 8 tabelas `control_plane_*`,
+migration `0098_control_plane_persistence`) de `Tenant`/`Installation`/
+histórico de `DeploymentManifest`/`ProvisioningPlan` (runs + steps)/conexão
+de provider, implementando as MESMAS interfaces `TenantRepository`/
+`InstallationRepository` já definidas (`Database*Repository` ao lado dos
+`InMemory*` existentes, troca explícita via factory) — mais o Credentials
+Vault (`CredentialsVault`: `createReference`/`resolveReferenceMetadata`/
+`rotateReference`/`revokeReference`/`validateReference`, sem
+`getSecretValue()`), que é peça inteiramente nova. RLS restrita a
+`fn_is_platform_admin()` em todas as 8 (reuso puro do helper já existente,
+nenhuma tabela tenant-aware — Control Plane não é dado de `organizations`
+desta CRM). AINDA NÃO conecta nenhum provider real nem guarda nenhum
+segredo de verdade — `docs/control-plane-persistence/runtime-boundary.md`
+é a linha exata. Migration criada e revisada, **não aplicada** — ver
+`docs/control-plane-persistence/migration.md`. `lib/control-plane-persistence/`.
+Ver `docs/control-plane-persistence/overview.md`.
 
-- **Persistência real** de `Tenant`/`Installation`/`ProvisioningPlan`/
-  `MonitoringSnapshot`/`BillingSubscription`/`BillingInvoice` (tabela,
-  migration, banco próprio da Brighter — nunca dentro do banco de um
-  cliente), implementando as MESMAS interfaces `InstallationRepository`/
-  `MonitoringRepository`/`BillingRepository`/`ProvisioningAdapterRepository`
-  já definidas.
-- **Provider credentials vault** — armazenamento seguro das credenciais que
-  os adapters reais vão precisar (chave Supabase, token Vercel, API key
-  Hostinger/Cloudflare, etc.) — nunca no `Tenant`/`Installation` (que só
-  guardam referência pública, nunca segredo).
-- **Workers, scheduler, filas** — infraestrutura de execução assíncrona pra
-  rodar provisionamento/automação/outreach de verdade fora do request-response.
-- **Onboarding automatizado** — fluxo ponta a ponta que efetivamente cria
-  uma instalação nova, usando os runtimes reais abaixo.
-- **Observabilidade e auditoria** — trilha real de quem executou o quê,
-  quando, com qual resultado (hoje só simulado nos `*_log`/`summary.ts` de
-  cada fundação).
-- **Rollback real** — executar de fato os passos hoje só descritos como
-  texto em cada `rollbackPreview`.
-- **Aprovação humana para ações destrutivas** — gate obrigatório antes de
-  qualquer rollback/desativação real acontecer.
+### Próximos
 
-Runtimes por domínio, cada um plugando um adapter REAL na interface já
-existente, sem mudar a interface:
+1. **Provider Credentials Runtime** — um `vaultProvider` REAL por trás do
+   Credentials Vault já persistido (candidato: Postgres `pgp_sym_encrypt`,
+   mesmo padrão do OAuth do Nuvemshop, `fn_encrypt_oauth`/`fn_decrypt_oauth`).
+2. **Real Supabase Adapter** — implementação de verdade de
+   `ProvisioningProviderAdapter` pra `supabase`, plugada no registry já
+   existente em `lib/provisioning-adapters/` sem mudar sua interface.
+3. **Real Vercel Adapter** — idem, pra `vercel`.
+4. **DNS Provider Adapter** — idem, pra `dns` (e `configure_ssl`).
+5. **Provisioning Runtime** — orquestra os adapters reais acima dentro do
+   `ProvisioningPlan` já persistido, executando de fato as etapas hoje só
+   dry-run/simuladas.
+6. **Monitoring Runtime** — persistência real de `MonitoringSnapshot`/
+   `MonitoringIncident` + adaptadores reais de `MonitoringAdapter` (ping
+   HTTP, DNS, SSL, Supabase, Redis, WAHA), plugados no motor já existente em
+   `lib/monitoring/` sem mudar sua interface.
+7. **Billing Runtime** — persistência real de `BillingSubscription`/
+   `BillingInvoice` + adaptadores reais de `BillingProviderAdapter`
+   (InfinitePay/Stripe/Mercado Pago/Pix/boleto), plugados em
+   `lib/billing/adapters.ts` sem mudar sua interface.
+8. **Outreach Runtime** — adapta `OutreachChannelAdapter`/
+   `ResponseClassifier`/`ResponseDraftGenerator` reais (WAHA/Meta Cloud/
+   SMTP/SMS, Vercel AI Gateway) plugados nas interfaces já existentes em
+   `lib/outreach/adapters.ts`, mais persistência real de `OutreachCampaign`/
+   `OutreachCadence`/`OutreachEnrollment`.
+9. **Worker/Scheduler Runtime** — infraestrutura de execução assíncrona
+   (`event_log` + cron, doutrina já existente do CLAUDE.md) pra rodar
+   provisionamento/automação/outreach de verdade fora do request-response.
+10. **Automated Client Onboarding** — fluxo ponta a ponta que efetivamente
+    cria uma instalação nova, orquestrando os services de
+    `lib/control-plane-persistence/services.ts` sobre os runtimes reais
+    acima.
 
-- **Provisioning runtime real** — implementações de verdade de
-  `ProvisioningProviderAdapter` (Supabase, Vercel/Cloudflare, VPS, DNS,
-  Caddy, Docker, Redis, WhatsApp/WAHA/Evolution/Chatwoot, e-mail),
-  plugadas no registry já existente em `lib/provisioning-adapters/` sem
-  mudar sua interface.
-- **Automation Adapters Foundation** — implementações de verdade de
-  `WorkflowActionAdapter` que de fato chamem `lib/automation/actions/*`
-  (execução real das ações hoje só simuladas pela Automation Engine
-  Foundation), plugadas no executor já existente em
-  `lib/automation-engine/executor.ts` sem mudar sua interface. Mesmo
-  padrão do "Provisioning runtime real" acima.
-- **Outreach Runtime real** — adapta `OutreachChannelAdapter`/
-  `ResponseClassifier`/`ResponseDraftGenerator` reais (WAHA/Meta Cloud/
-  SMTP/SMS, Vercel AI Gateway) plugados nas interfaces já existentes em
-  `lib/outreach/adapters.ts` sem mudar a interface, mais persistência real
-  de `OutreachCampaign`/`OutreachCadence`/`OutreachEnrollment` e promoção
-  de `automation.campaigns` de `status: "planned"` pra `"stable"`.
-- **Marketplace Adapters real** — implementações de verdade de
-  `ModuleActivationAdapter`/`MarketplaceBillingAdapter`/
-  `MarketplaceProvisioningAdapter` (`lib/marketplace/adapters.ts`, hoje só
-  Noop/Fake), configuração de módulos pelo painel (hoje só por env var
-  `ENABLED_MODULES`/`DISABLED_MODULES`), persistência real de
-  `ModuleLicense`/`ModuleTrial`/`MarketplaceOffer`/`MarketplaceBundle` e
-  descoberta/instalação de módulos de terceiros.
-- **Adaptadores reais de billing** — implementações de verdade de
-  `BillingProviderAdapter` (InfinitePay/Stripe/Mercado Pago/Pix/boleto),
-  plugadas em `lib/billing/adapters.ts` sem mudar sua interface.
-- **Adaptadores reais de monitoramento** — implementações de verdade de
-  `MonitoringAdapter` (ping HTTP, resolução DNS, validade SSL, Supabase,
-  Redis, WAHA), plugadas no motor já existente em `lib/monitoring/` sem
-  mudar sua interface.
-- **Suporte e SLA** — canal e processo formal de suporte por tenant.
+Não implementados agora (itens 1-10 acima são só o roadmap ordenado).
+Cross-cutting que continua pendente, sem item numerado próprio: observabilidade/
+auditoria real de execução (hoje só a trilha de `control_plane_operation_events`
+sobre as MUTAÇÕES de persistência, não sobre execução real de infra),
+rollback real (hoje só `rollbackPreview` textual), aprovação humana
+obrigatória antes de qualquer rollback/desativação real, Automation Adapters
+Foundation (`WorkflowActionAdapter` real em `lib/automation-engine/executor.ts`),
+Marketplace Adapters real (`lib/marketplace/adapters.ts`, hoje só Noop/Fake),
+suporte e SLA formal por tenant.
 
 **Nota sobre IA:** IA é capacidade opcional consumida por módulos
 específicos (`ai.agents`/`ai.memory`/`ai.rag`, e futuros módulos de

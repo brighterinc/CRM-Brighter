@@ -131,6 +131,14 @@ Detalham schema SQL e payloads exatos. **Consulte antes de modelar qualquer cois
 | [`provisioning-adapters/security.md`](provisioning-adapters/security.md) | Sanitização, garantias "nunca real", RBAC da tela admin |
 | [`provisioning-adapters/providers.md`](provisioning-adapters/providers.md) | Os 14 blueprints de provider |
 | [`provisioning-adapters/simulation.md`](provisioning-adapters/simulation.md) | Os 22 cenários de `simulateProvisioningAdapterScenario` e a regra de exit code da CLI (`pnpm provisioning:adapters`) |
+| [`control-plane-persistence/overview.md`](control-plane-persistence/overview.md) | **Control Plane Persistence + Credentials Vault** — persistência real (8 tabelas `control_plane_*`, migration 0098) de `Tenant`/`Installation`/histórico de deployment/`ProvisioningPlan`/conexão de provider, e o Credentials Vault (referência de segredo, nunca o valor). Ainda sem provider real conectado |
+| [`control-plane-persistence/schema.md`](control-plane-persistence/schema.md) | As 8 tabelas — colunas, FKs (CASCADE vs SET NULL), CHECK constraints, vocabulário aberto vs fechado |
+| [`control-plane-persistence/rls.md`](control-plane-persistence/rls.md) | Policies (`fn_is_platform_admin()`, reusada, nenhum helper novo), por que nenhuma tabela é tenant-aware, como isso garante "tenant admin nunca vê outro tenant" |
+| [`control-plane-persistence/credentials-vault.md`](control-plane-persistence/credentials-vault.md) | A abstração `CredentialsVault` (sem `getSecretValue()`), as 3 implementações, o que a tabela nunca guarda |
+| [`control-plane-persistence/repositories.md`](control-plane-persistence/repositories.md) | `Database*Repository` ao lado dos `InMemory*`, troca explícita via `factory.ts` (import dinâmico pra não quebrar CLI sem `.env`), mappers |
+| [`control-plane-persistence/security.md`](control-plane-persistence/security.md) | `assertSafePersistencePayload` fail-closed, os dois audit trails (`api_audit_log` vs `control_plane_operation_events`) e por que não são duplicação |
+| [`control-plane-persistence/migration.md`](control-plane-persistence/migration.md) | Migration 0098 — estado (criada, NÃO aplicada), como aplicar quando decidido, rollback documentado |
+| [`control-plane-persistence/runtime-boundary.md`](control-plane-persistence/runtime-boundary.md) | A linha exata entre o que esta fase faz e o que é fase futura (provider real, vault real, monitoring/billing persistidos) |
 
 ## 5. Design system
 

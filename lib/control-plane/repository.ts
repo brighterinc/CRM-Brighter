@@ -60,8 +60,14 @@ export type InstallationCreateInput = {
   tenant: Tenant;
 };
 
-/** Deriva os campos que a `Installation` nunca guarda de forma independente do `tenant`. */
-function deriveInstallationFromTenant(
+/**
+ * Deriva os campos que a `Installation` nunca guarda de forma independente do
+ * `tenant`. Exportada (não só interna a este arquivo) porque
+ * `DatabaseInstallationRepository` (`lib/control-plane-persistence/`) precisa
+ * do MESMO cálculo — persistir esses campos como coluna seria a duplicação
+ * que este design inteiro existe para evitar (DIRC "Calcular").
+ */
+export function deriveInstallationFromTenant(
   tenant: Tenant,
 ): Pick<Installation, "deploymentPlan" | "branding" | "modules" | "deployment" | "provisioning"> {
   if (!tenant.manifest) throw new TenantMissingManifestError(tenant.id);
