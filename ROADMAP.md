@@ -258,14 +258,40 @@ segredo de verdade — `docs/control-plane-persistence/runtime-boundary.md`
 `docs/control-plane-persistence/migration.md`. `lib/control-plane-persistence/`.
 Ver `docs/control-plane-persistence/overview.md`.
 
+**Provider Credentials Runtime** — a camada runtime que resolve
+`secretReferenceId` → VALOR só em memória, pelo menor tempo possível,
+dentro de um boundary controlado (`withProviderCredential()`), sem nunca
+expor esse valor ao domínio/UI/logs/banco. `RuntimeVaultProvider` (contrato
+separado do `CredentialsVault` de persistência) com 3 implementações desta
+fase — `Noop`/`InMemory`/`Environment` (nenhuma real) —, policy engine
+default-deny (`evaluateProviderCredentialAccess`, cruza tenant/
+installation/provider/secret reference/provider connection/purpose/
+operation, nega cross-tenant mesmo com `ProviderConnection` "válida"
+apontando errado), `CredentialLease` (ciclo de vida `created → active →
+consumed → released`, mais `expired`/`revoked`/`failed`, single-use por
+padrão, in-memory nesta fase), detecção ESTRUTURAL de escape de credencial
+(a credencial nunca sai do callback, mesmo embutida em profundidade sob
+chave inocente), e integração com `ProvisioningAdapterCapability`
+(`requiredCredentialPurpose`/`requiredSecretType`, campos aditivos
+`string` solto pra evitar import circular). 11 cenários de simulação
+(`pnpm credentials:runtime`), admin UI read-only. AINDA NÃO implementa um
+vault real nem executa nenhum provider real — orquestra só o BOUNDARY que
+um vault/provider real vai usar depois. `lib/provider-credentials-runtime/`.
+Ver `docs/provider-credentials-runtime/overview.md`.
+
 ### Próximos
 
-1. **Provider Credentials Runtime** — um `vaultProvider` REAL por trás do
-   Credentials Vault já persistido (candidato: Postgres `pgp_sym_encrypt`,
-   mesmo padrão do OAuth do Nuvemshop, `fn_encrypt_oauth`/`fn_decrypt_oauth`).
+1. **Vault Backend Real** — um `RuntimeVaultProvider` REAL plugado no
+   `RuntimeVaultProviderRegistry` já existente (candidato: Postgres
+   `pgp_sym_encrypt`, mesmo padrão do OAuth do Nuvemshop,
+   `fn_encrypt_oauth`/`fn_decrypt_oauth` — mas com tabela de ciphertext
+   SEPARADA de `control_plane_secret_references` e função `SECURITY
+   DEFINER` própria, nunca reusando as do Nuvemshop).
 2. **Real Supabase Adapter** — implementação de verdade de
    `ProvisioningProviderAdapter` pra `supabase`, plugada no registry já
-   existente em `lib/provisioning-adapters/` sem mudar sua interface.
+   existente em `lib/provisioning-adapters/` sem mudar sua interface,
+   usando `withProviderCredential` (Provider Credentials Runtime, acima)
+   pra pegar credencial.
 3. **Real Vercel Adapter** — idem, pra `vercel`.
 4. **DNS Provider Adapter** — idem, pra `dns` (e `configure_ssl`).
 5. **Provisioning Runtime** — orquestra os adapters reais acima dentro do

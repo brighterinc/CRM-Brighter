@@ -139,6 +139,14 @@ Detalham schema SQL e payloads exatos. **Consulte antes de modelar qualquer cois
 | [`control-plane-persistence/security.md`](control-plane-persistence/security.md) | `assertSafePersistencePayload` fail-closed, os dois audit trails (`api_audit_log` vs `control_plane_operation_events`) e por que não são duplicação |
 | [`control-plane-persistence/migration.md`](control-plane-persistence/migration.md) | Migration 0098 — estado (criada, NÃO aplicada), como aplicar quando decidido, rollback documentado |
 | [`control-plane-persistence/runtime-boundary.md`](control-plane-persistence/runtime-boundary.md) | A linha exata entre o que esta fase faz e o que é fase futura (provider real, vault real, monitoring/billing persistidos) |
+| [`provider-credentials-runtime/overview.md`](provider-credentials-runtime/overview.md) | **Provider Credentials Runtime** — resolve `secretReferenceId` → valor só em memória, pelo menor tempo possível, dentro de `withProviderCredential()`. Vault providers Noop/InMemory/Environment, sem provider real, sem vault real |
+| [`provider-credentials-runtime/security.md`](provider-credentials-runtime/security.md) | Ciclo de vida do segredo em memória (`ResolvedCredential`, buffer privado real), detecção de escape estrutural, as duas funções de sanitização e por que são diferentes |
+| [`provider-credentials-runtime/leases.md`](provider-credentials-runtime/leases.md) | `CredentialLease` — status, transições válidas, por que release/fail/expire/revoke são idempotentes, single-use em duas camadas |
+| [`provider-credentials-runtime/policies.md`](provider-credentials-runtime/policies.md) | `evaluateProviderCredentialAccess` — default-deny, checklist completo de blockers, cross-tenant, secrets platform-wide |
+| [`provider-credentials-runtime/vault-providers.md`](provider-credentials-runtime/vault-providers.md) | `RuntimeVaultProvider`, os 3 providers desta fase, `VaultProvider` × `RuntimeVaultProviderId`, o registry |
+| [`provider-credentials-runtime/adapter-integration.md`](provider-credentials-runtime/adapter-integration.md) | `requiredCredentialPurpose`/`requiredSecretType` em `ProvisioningAdapterCapability`, por que são `string` solto, `resolveCredentialRequirementForAdapter` |
+| [`provider-credentials-runtime/runtime-boundary.md`](provider-credentials-runtime/runtime-boundary.md) | `withProviderCredential` como chokepoint único, o que muda quando o vault/adapter real existir, pendências cross-cutting |
+| [`provider-credentials-runtime/simulation.md`](provider-credentials-runtime/simulation.md) | Os 11 cenários de `pnpm credentials:runtime`, o que cada um prova, `release-on-error` como único outcome esperado `"error"` |
 
 ## 5. Design system
 

@@ -1,7 +1,7 @@
 ---
 type: architecture
 status: v1 — fundação
-last_updated: 2026-08-12
+last_updated: 2026-08-13
 ---
 
 # Brighter Platform
@@ -197,24 +197,44 @@ last_updated: 2026-08-12
 │  `simulation`. lib/control-plane-persistence/. Ver                 │
 │  docs/control-plane-persistence/overview.md.                       │
 └─────────────────────────────────────────────────────────────────┘
+                              ↓ orquestra resolução de credencial pra
+┌─────────────────────────────────────────────────────────────────┐
+│  Provider Credentials Runtime                     (concluído — v1) │
+│  Camada runtime que resolve `secretReferenceId` → VALOR só em     │
+│  memória, pelo menor tempo possível, dentro de um boundary        │
+│  controlado (`withProviderCredential()`) — sem nunca expor esse   │
+│  valor ao domínio/UI/logs/banco. `RuntimeVaultProvider` (Noop/     │
+│  InMemory/Environment — nenhum real), policy engine default-deny  │
+│  (cruza tenant/installation/provider/purpose/operation),           │
+│  `CredentialLease` (ciclo de vida, single-use, in-memory nesta    │
+│  fase), detecção estrutural de escape de credencial (nunca sai    │
+│  do callback), integração com `ProvisioningAdapterCapability`      │
+│  (`requiredCredentialPurpose`/`requiredSecretType`). AINDA NÃO      │
+│  implementa vault real nem executa provider real — só orquestra   │
+│  o BOUNDARY que um provider/vault real vai usar depois.            │
+│  lib/provider-credentials-runtime/. Ver                            │
+│  docs/provider-credentials-runtime/overview.md.                    │
+└─────────────────────────────────────────────────────────────────┘
                               ↓ (futuro)
 ┌─────────────────────────────────────────────────────────────────┐
-│  Provider Credentials Runtime + Real Adapters            (futuro) │
+│  Real Provider Adapters + Real Vault Backend              (futuro) │
 │  Implementações REAIS de `ProvisioningProviderAdapter`            │
 │  (Supabase/Vercel/VPS/DNS/Caddy/Docker/Redis/WhatsApp-WAHA-       │
 │  Evolution-Chatwoot/e-mail) plugadas no registry já existente em   │
-│  `lib/provisioning-adapters/` sem mudar sua interface, um          │
-│  `vaultProvider` real (ex.: Postgres `pgp_sym_encrypt`, mesmo       │
-│  padrão do OAuth do Nuvemshop) por trás do Credentials Vault já    │
-│  persistido acima, persistência real de `MonitoringSnapshot`/      │
-│  `MonitoringIncident`/`BillingSubscription`/`BillingInvoice`, e de  │
-│  pagamento (InfinitePay/Stripe/Mercado Pago) que de fato            │
-│  executam o `ProvisioningPlan`/os checks de monitoramento/a         │
-│  cobrança. Por doutrina, CONSOME as camadas de domínio já           │
-│  existentes (tipos, validação, readiness, planner, executor,        │
-│  evaluator, `InstallationRepository`/`MonitoringRepository`/         │
-│  `BillingRepository`/`ProvisioningAdapterRepository`), nunca as      │
-│  substitui. Ver ROADMAP.md.                                         │
+│  `lib/provisioning-adapters/` sem mudar sua interface, usando o    │
+│  boundary da Provider Credentials Runtime acima pra pegar          │
+│  credencial; um `RuntimeVaultProvider` real (ex.: Postgres         │
+│  `pgp_sym_encrypt`, mesmo padrão do OAuth do Nuvemshop) por trás   │
+│  do Credentials Vault já persistido; persistência real de          │
+│  `MonitoringSnapshot`/`MonitoringIncident`/`BillingSubscription`/   │
+│  `BillingInvoice`, e de pagamento (InfinitePay/Stripe/Mercado       │
+│  Pago) que de fato executam o `ProvisioningPlan`/os checks de       │
+│  monitoramento/a cobrança. Por doutrina, CONSOME as camadas de      │
+│  domínio já existentes (tipos, validação, readiness, planner,       │
+│  executor, evaluator, `InstallationRepository`/                     │
+│  `MonitoringRepository`/`BillingRepository`/                        │
+│  `ProvisioningAdapterRepository`), nunca as substitui. Ver          │
+│  ROADMAP.md.                                                        │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -309,3 +329,4 @@ o que referenciar além do valor em si.
 | Marketplace / Module Licensing Engine | `lib/marketplace/`, `app/app/settings/modulos-licencas/`, `scripts/generate-marketplace-summary.ts` | `docs/marketplace/marketplace-engine.md`, `docs/marketplace/module-catalog.md`, `docs/marketplace/offers-and-bundles.md`, `docs/marketplace/licenses.md`, `docs/marketplace/trials.md`, `docs/marketplace/entitlements.md`, `docs/marketplace/activation-plans.md`, `docs/marketplace/versioning.md`, `docs/marketplace/simulation.md` |
 | Provisioning Adapters Engine | `lib/provisioning-adapters/`, `app/app/settings/provisioning-adapters/`, `scripts/generate-provisioning-adapters-summary.ts` | `docs/provisioning-adapters/overview.md`, `docs/provisioning-adapters/provider-contract.md`, `docs/provisioning-adapters/capabilities.md`, `docs/provisioning-adapters/dry-run.md`, `docs/provisioning-adapters/rollback.md`, `docs/provisioning-adapters/security.md`, `docs/provisioning-adapters/providers.md`, `docs/provisioning-adapters/simulation.md` |
 | Control Plane Persistence + Credentials Vault | `lib/control-plane-persistence/`, `app/app/settings/control-plane/persistence/`, `scripts/control-plane-persistence-summary.ts`, `supabase/migrations/20260811000000_0098_control_plane_persistence.sql` | `docs/control-plane-persistence/overview.md`, `docs/control-plane-persistence/schema.md`, `docs/control-plane-persistence/security.md`, `docs/control-plane-persistence/credentials-vault.md`, `docs/control-plane-persistence/repositories.md`, `docs/control-plane-persistence/rls.md`, `docs/control-plane-persistence/migration.md`, `docs/control-plane-persistence/runtime-boundary.md` |
+| Provider Credentials Runtime | `lib/provider-credentials-runtime/`, `app/app/settings/control-plane/credentials-runtime/`, `scripts/credentials-runtime-summary.ts` | `docs/provider-credentials-runtime/overview.md`, `docs/provider-credentials-runtime/security.md`, `docs/provider-credentials-runtime/leases.md`, `docs/provider-credentials-runtime/policies.md`, `docs/provider-credentials-runtime/vault-providers.md`, `docs/provider-credentials-runtime/adapter-integration.md`, `docs/provider-credentials-runtime/runtime-boundary.md`, `docs/provider-credentials-runtime/simulation.md` |

@@ -374,6 +374,35 @@ reais existir.
 
 ---
 
+## J18 — Configurações › Control Plane (Provider Credentials Runtime) `[P2]`
+
+Contexto do código: tela somente leitura, **platform-admin only**
+(`app/app/settings/control-plane/credentials-runtime/page.tsx`, mesmo guard
+`requirePlatformAdmin()` de J17), lê `createControlPlaneRepositories("database")`
++ `createDefaultRuntimeVaultProviderRegistry()`. `[P2]`: tela de diagnóstico
+interno da Brighter, não do dia a dia de um tenant. Nunca mostra valor de
+segredo — só metadata/status de readiness por instalação/provider.
+
+**NÃO EXECUTADO NESTA SESSÃO via Playwright** — mesma razão de J17: migration
+`0098` (que a página depende via `mode: "database"`) ainda não foi aplicada
+a nenhum banco. Coberto via `renderToStaticMarkup` com repos mockados
+(`tests/unit/provider-credentials-runtime-page.test.tsx`) e via CLI
+100% in-memory (`pnpm credentials:runtime`) — ambos executados e passando
+nesta sessão. Registrado aqui como cobertura Playwright PLANEJADA, pendente
+até a migration ser aplicada e um banco de teste com fixtures reais existir.
+
+| # | Caso | Expectativa |
+|---|------|-------------|
+| J18.1 | Admin de tenant (sem `platform_admins`) acessa `/app/settings/control-plane/credentials-runtime` | bloqueado — redirect `/admin/forbidden` |
+| J18.2 | Platform-admin sem MFA AAL2 acessa a rota | redirect `/login/mfa?next=/admin` |
+| J18.3 | Platform-admin autenticado (AAL2) acessa a rota | tela carrega com resumo + tabela de vault providers (noop/in_memory/environment) + readiness por instalação |
+| J18.4 | Banco sem nenhuma installation/conexão ainda | estado vazio explícito ("Nenhuma instalação persistida ainda"), nunca tela quebrada |
+| J18.5 | Installation com secret reference cujo `vaultKey` tem valor sensível | `vaultKey`/valor **nunca** aparece em nenhuma célula/atributo/tooltip da página renderizada |
+| J18.6 | `pnpm credentials:runtime -- --scenario all` rodado localmente | todos os 11 cenários batem o outcome esperado, sem exigir `.env` |
+| J18.7 | `pnpm credentials:runtime -- --mode summary --format json` | JSON válido, `nextAction` presente, nenhum valor de segredo em nenhum campo |
+
+---
+
 ## Achados do mapeamento (pré-execução) — candidatos a correção
 
 | ID | Achado | Origem | Severidade |
