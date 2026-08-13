@@ -66,6 +66,18 @@ export type ProvisioningAdapterCapability = {
   supportedPlans: DeploymentPlan[];
   requiredModules?: string[];
   requiredInfra?: string[];
+  /**
+   * Nome de um `ProviderCredentialPurpose` (`lib/provider-credentials-runtime/types.ts`)
+   * exigido antes de executar esta operação com um provider real, se
+   * houver — ex.: `"deploy"`, `"database_admin"`. Tipado como `string` solto
+   * (não importa o tipo estrito) de propósito: `lib/provisioning-adapters`
+   * nunca depende de `lib/provider-credentials-runtime` (dependência é o
+   * inverso — evita import circular). Interpretado/validado por
+   * `resolveCredentialRequirementForAdapter` em `adapter-integration.ts`.
+   */
+  requiredCredentialPurpose?: string;
+  /** Idem, nome de um `SecretReferenceType` (`lib/control-plane-persistence/types.ts`) exigido, se houver. */
+  requiredSecretType?: string;
   supportsDryRun: boolean;
   supportsRollbackPreview: boolean;
   /** SEMPRE `false` nesta Foundation — reservado pra fase futura de adapters reais. */
