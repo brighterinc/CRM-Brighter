@@ -20,7 +20,7 @@ import { InMemoryTenantRepository, type TenantRepository } from "@/lib/tenants/r
 
 import { InMemoryCredentialsVault } from "../vault/in-memory";
 import { NoopCredentialsVault } from "../vault/noop";
-import type { CredentialsVault, SecretReferenceReader } from "../vault/types";
+import type { CredentialsVault, SecretReferenceReader, SecretUsageRecorder } from "../vault/types";
 import type { DeploymentRepository } from "./deployment";
 import {
   InMemoryDeploymentRepository,
@@ -50,6 +50,8 @@ export type ControlPlaneRepositories = {
    * (ver `vault/types.ts`).
    */
   secretReferences: SecretReferenceReader;
+  /** MESMA instância de `vault`, tipada pra `recordUsage` (ver `vault/types.ts::SecretUsageRecorder`) — nunca uma segunda instância/estado. */
+  secretUsage: SecretUsageRecorder;
   operationEvents: OperationEventRepository;
 };
 
@@ -76,6 +78,7 @@ async function createDatabaseRepositories(): Promise<ControlPlaneRepositories> {
     providerConnections: new DatabaseProviderConnectionRepository(),
     vault: secretReferenceRepository,
     secretReferences: secretReferenceRepository,
+    secretUsage: secretReferenceRepository,
     operationEvents: new DatabaseOperationEventRepository(),
   };
 }
@@ -92,6 +95,7 @@ function createInMemoryRepositories(): ControlPlaneRepositories {
     providerConnections: new InMemoryProviderConnectionRepository(),
     vault,
     secretReferences: vault,
+    secretUsage: vault,
     operationEvents: new InMemoryOperationEventRepository(),
   };
 }

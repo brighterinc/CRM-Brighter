@@ -168,7 +168,15 @@ describe("mapper de secret reference", () => {
     expect(Object.keys(row).sort()).toEqual(
       ["installation_id", "provider", "reference", "status", "tenant_id", "type", "vault_key", "vault_provider", "version"].sort(),
     );
-    const metadata = secretReferenceRowToMetadata({ id: "sr-1", created_at: "now", updated_at: "now", rotated_at: null, revoked_at: null, ...row });
+    const metadata = secretReferenceRowToMetadata({
+      id: "sr-1",
+      created_at: "now",
+      updated_at: "now",
+      rotated_at: null,
+      revoked_at: null,
+      last_used_at: null,
+      ...row,
+    });
     expect(metadata.vaultKey).toBe("placeholder/abc");
     expect(metadata.status).toBe("active");
   });

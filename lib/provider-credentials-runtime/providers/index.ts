@@ -4,13 +4,32 @@
  * Foundation). `EnvironmentRuntimeVaultProvider` nasce desabilitado por
  * padrão nesta fábrica — quem quiser habilitá-lo (teste/CLI) monta o próprio
  * registry com `registerRuntimeVaultProvider(new EnvironmentRuntimeVaultProvider({ enabled: true }))`.
+ *
+ * `PostgresPgcryptoRuntimeVaultProvider` (Real Vault Backend) NUNCA entra em
+ * `createDefaultRuntimeVaultProviderRegistry()` — mesmo precedente do Real
+ * Supabase Adapter não estar em `createDefaultProvisioningAdapterRegistry()`:
+ * o registry default continua seguro de importar sem tocar banco/rede/chave
+ * mestra. Quem quer o backend real chama
+ * `registerPostgresPgcryptoVaultProvider(registry, deps)` explicitamente.
  */
 import { RuntimeVaultProviderRegistry } from "../registry";
 import { EnvironmentRuntimeVaultProvider } from "./environment";
 import { InMemoryRuntimeVaultProvider } from "./in-memory";
 import { NoopRuntimeVaultProvider } from "./noop";
+import {
+  createPostgresPgcryptoRuntimeVaultProvider,
+  PostgresPgcryptoRuntimeVaultProvider,
+  type PostgresPgcryptoRuntimeVaultProviderOptions,
+} from "./postgres-pgcrypto";
 
-export { EnvironmentRuntimeVaultProvider, InMemoryRuntimeVaultProvider, NoopRuntimeVaultProvider };
+export {
+  EnvironmentRuntimeVaultProvider,
+  InMemoryRuntimeVaultProvider,
+  NoopRuntimeVaultProvider,
+  PostgresPgcryptoRuntimeVaultProvider,
+  createPostgresPgcryptoRuntimeVaultProvider,
+};
+export type { PostgresPgcryptoRuntimeVaultProviderOptions };
 
 export function createDefaultRuntimeVaultProviderRegistry(): RuntimeVaultProviderRegistry {
   const registry = new RuntimeVaultProviderRegistry();
@@ -18,4 +37,12 @@ export function createDefaultRuntimeVaultProviderRegistry(): RuntimeVaultProvide
   registry.registerProvider(new InMemoryRuntimeVaultProvider());
   registry.registerProvider(new EnvironmentRuntimeVaultProvider());
   return registry;
+}
+
+/** Registra o Real Vault Backend num registry já existente — nunca chamado por `createDefaultRuntimeVaultProviderRegistry()`. */
+export function registerPostgresPgcryptoVaultProvider(
+  registry: RuntimeVaultProviderRegistry,
+  deps: PostgresPgcryptoRuntimeVaultProviderOptions,
+): void {
+  registry.registerProvider(createPostgresPgcryptoRuntimeVaultProvider(deps));
 }

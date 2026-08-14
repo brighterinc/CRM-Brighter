@@ -58,4 +58,20 @@ export interface SecretReferenceReader {
   listByInstallation(installationId: string): Promise<SecretReferenceMetadata[]>;
 }
 
+/**
+ * `recordUsage` — bump de `lastUsedAt`, deliberadamente FORA de
+ * `CredentialsVault` (mesmo espírito de `SecretReferenceReader`): não é uma
+ * mutação de negócio (não muda `version`/`status`), é telemetria de runtime
+ * chamada em TODA resolução bem-sucedida (`PostgresPgcryptoRuntimeVaultProvider`,
+ * via `vault/secret-value-service.ts`) — misturar na interface principal
+ * poluiria o contrato que toda UI/CLI usa pra metadata "de negócio". As duas
+ * implementações concretas do vault expõem a MESMA instância via
+ * `repos.vault`/`repos.secretUsage` (nunca duas instâncias/dois estados) —
+ * mesmo padrão de `repos.vault`/`repos.secretReferences`.
+ */
+export interface SecretUsageRecorder {
+  /** Nunca lança se a reference não existir — silenciosamente não-op (fire-and-forget por natureza, nunca deve derrubar uma resolução bem-sucedida). */
+  recordUsage(id: string): Promise<void>;
+}
+
 export type { SecretReferenceMetadata, SecretReferenceProvider, SecretReferenceType, VaultProvider };

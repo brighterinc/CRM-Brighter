@@ -266,6 +266,7 @@ export type ControlPlaneSecretReferenceRow = {
   updated_at: string;
   rotated_at: string | null;
   revoked_at: string | null;
+  last_used_at: string | null;
 };
 
 export function secretReferenceRowToMetadata(row: ControlPlaneSecretReferenceRow): SecretReferenceMetadata {
@@ -284,6 +285,7 @@ export function secretReferenceRowToMetadata(row: ControlPlaneSecretReferenceRow
     updatedAt: row.updated_at,
     rotatedAt: row.rotated_at ?? undefined,
     revokedAt: row.revoked_at ?? undefined,
+    lastUsedAt: row.last_used_at ?? undefined,
   };
 }
 

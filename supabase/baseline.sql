@@ -9090,3 +9090,157 @@ create policy control_plane_operation_events_insert on public.control_plane_oper
   for insert
   with check (public.fn_is_platform_admin());
 -- Sem policy de UPDATE/DELETE — RLS ligada nega os dois por padrão. Append-only.
+
+-- ---- real vault backend (migration 0099) ----
+
+create table if not exists public.control_plane_secret_ciphertexts (
+  id uuid primary key default gen_random_uuid(),
+  secret_reference_id uuid not null references public.control_plane_secret_references(id) on delete cascade,
+  version integer not null,
+  status text not null default 'active',
+  ciphertext bytea not null,
+  encryption_scheme text not null default 'pgcrypto_aes256',
+  key_id text not null default 'default',
+  created_at timestamptz not null default now(),
+  superseded_at timestamptz,
+  revoked_at timestamptz,
+  constraint control_plane_secret_ciphertexts_status_check check (status in ('active', 'superseded', 'revoked')),
+  constraint control_plane_secret_ciphertexts_version_positive_check check (version > 0),
+  constraint control_plane_secret_ciphertexts_reference_version_uniq unique (secret_reference_id, version)
+);
+
+comment on table public.control_plane_secret_ciphertexts is
+  'Real Vault Backend (migration 0099) — ENCRYPTED SECRET PAYLOAD, uma linha por versão. NUNCA junta com control_plane_secret_references (metadata pública) — RLS aqui é ZERO policies, nem platform-admin. Só service_role, só via DatabaseSecretPayloadRepository.';
+comment on column public.control_plane_secret_ciphertexts.ciphertext is
+  'Saída de public.fn_vault_encrypt_secret() — pgp_sym_encrypt com chave em private.fn_vault_key(). NUNCA lido fora de PostgresPgcryptoRuntimeVaultProvider.resolveSecret().';
+comment on column public.control_plane_secret_ciphertexts.key_id is
+  'Identifica qual chave mestra cifrou este payload — prepara rotação de CHAVE MESTRA futura (distinta de rotação de SEGREDO, que é uma versão nova nesta mesma tabela). Nesta fase sempre "default".';
+
+create unique index if not exists control_plane_secret_ciphertexts_active_uniq
+  on public.control_plane_secret_ciphertexts (secret_reference_id)
+  where status = 'active';
+create index if not exists control_plane_secret_ciphertexts_reference_idx
+  on public.control_plane_secret_ciphertexts (secret_reference_id);
+
+alter table public.control_plane_secret_ciphertexts enable row level security;
+revoke all on public.control_plane_secret_ciphertexts from anon;
+revoke all on public.control_plane_secret_ciphertexts from authenticated;
+-- Sem NENHUMA policy — RLS ligada nega tudo por padrão, inclusive platform-admin. Só service_role (bypassa RLS) toca esta tabela.
+
+create schema if not exists private;
+create table if not exists private.app_secrets (
+  name text primary key,
+  value text not null,
+  updated_at timestamptz not null default now()
+);
+revoke all on schema private from public;
+revoke all on all tables in schema private from public;
+
+create or replace function private.fn_vault_key() returns text
+    language sql security definer
+    set search_path to 'private', 'pg_temp'
+    as $$
+  select coalesce(
+    nullif(current_setting('app.brighter_vault_key', true), ''),
+    (select value from private.app_secrets where name = 'brighter_vault_key')
+  );
+$$;
+revoke all on function private.fn_vault_key() from public;
+
+create or replace function public.fn_vault_encrypt_secret(plaintext text) returns bytea
+    language plpgsql security definer
+    set search_path to 'public', 'private', 'extensions', 'pg_temp'
+    as $$
+declare
+  k text := private.fn_vault_key();
+begin
+  if k is null or length(k) < 32 then
+    raise exception 'BRIGHTER_VAULT_ENCRYPTION_KEY ausente';
+  end if;
+  return pgp_sym_encrypt(plaintext, k, 'cipher-algo=aes256');
+end$$;
+
+create or replace function public.fn_vault_decrypt_secret(ciphertext bytea) returns text
+    language plpgsql security definer
+    set search_path to 'public', 'private', 'extensions', 'pg_temp'
+    as $$
+declare
+  k text := private.fn_vault_key();
+begin
+  if k is null or length(k) < 32 then
+    raise exception 'BRIGHTER_VAULT_ENCRYPTION_KEY ausente';
+  end if;
+  return pgp_sym_decrypt(ciphertext, k);
+end$$;
+
+revoke all on function public.fn_vault_encrypt_secret(text) from public;
+revoke all on function public.fn_vault_decrypt_secret(bytea) from public;
+grant execute on function public.fn_vault_encrypt_secret(text) to service_role;
+grant execute on function public.fn_vault_decrypt_secret(bytea) to service_role;
+
+create or replace function public.fn_vault_write_secret_version(
+  p_secret_reference_id uuid,
+  p_ciphertext bytea,
+  p_encryption_scheme text default 'pgcrypto_aes256',
+  p_key_id text default 'default'
+) returns public.control_plane_secret_ciphertexts
+    language plpgsql
+    set search_path to 'public', 'pg_temp'
+    as $$
+declare
+  v_next_version integer;
+  v_row public.control_plane_secret_ciphertexts;
+begin
+  perform 1 from public.control_plane_secret_references where id = p_secret_reference_id for update;
+  if not found then
+    raise exception 'secret_reference_not_found: %', p_secret_reference_id;
+  end if;
+
+  update public.control_plane_secret_ciphertexts
+    set status = 'superseded', superseded_at = now()
+    where secret_reference_id = p_secret_reference_id and status = 'active';
+
+  select coalesce(max(version), 0) + 1 into v_next_version
+    from public.control_plane_secret_ciphertexts
+    where secret_reference_id = p_secret_reference_id;
+
+  insert into public.control_plane_secret_ciphertexts
+    (secret_reference_id, version, status, ciphertext, encryption_scheme, key_id)
+  values (p_secret_reference_id, v_next_version, 'active', p_ciphertext, p_encryption_scheme, p_key_id)
+  returning * into v_row;
+
+  update public.control_plane_secret_references
+    set version = v_next_version,
+        status = 'active',
+        rotated_at = case when v_next_version > 1 then now() else rotated_at end
+    where id = p_secret_reference_id;
+
+  return v_row;
+end;
+$$;
+
+revoke all on function public.fn_vault_write_secret_version(uuid, bytea, text, text) from public;
+grant execute on function public.fn_vault_write_secret_version(uuid, bytea, text, text) to service_role;
+
+create or replace function public.fn_vault_revoke_secret(p_secret_reference_id uuid) returns void
+    language plpgsql
+    set search_path to 'public', 'pg_temp'
+    as $$
+begin
+  update public.control_plane_secret_ciphertexts
+    set status = 'revoked', revoked_at = now()
+    where secret_reference_id = p_secret_reference_id and status = 'active';
+end;
+$$;
+
+revoke all on function public.fn_vault_revoke_secret(uuid) from public;
+grant execute on function public.fn_vault_revoke_secret(uuid) to service_role;
+
+alter table public.control_plane_secret_references drop constraint if exists control_plane_secret_references_vault_provider_check;
+alter table public.control_plane_secret_references add constraint control_plane_secret_references_vault_provider_check
+  check (vault_provider in ('noop', 'in_memory', 'database_placeholder', 'postgres_pgcrypto'));
+
+alter table public.control_plane_secret_references add column if not exists last_used_at timestamptz;
+
+comment on column public.control_plane_secret_references.last_used_at is
+  'Última resolução de VALOR bem-sucedida (bump via SecretUsageRecorder.recordUsage, migration 0099) — telemetria, nunca gera api_audit_log (alta frequência). NULL = nunca resolvida.';

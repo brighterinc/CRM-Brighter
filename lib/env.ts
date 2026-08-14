@@ -151,6 +151,23 @@ const schema = z.object({
     .default("false")
     .transform((v) => v === "true"),
 
+  // Brighter Real Vault Backend — gate de execução REAL
+  // (lib/control-plane-persistence/vault/vault-gate.ts). Mesmo cuidado do
+  // REAL_PROVISIONING_ENABLED acima: declarado aqui só pra documentação/boot
+  // da app, o backend lê `process.env.REAL_VAULT_BACKEND_ENABLED` direto.
+  REAL_VAULT_BACKEND_ENABLED: z
+    .enum(["true", "false"])
+    .optional()
+    .default("false")
+    .transform((v) => v === "true"),
+  // Chave mestra do Real Vault Backend — pgp_sym_encrypt via
+  // fn_vault_encrypt_secret/fn_vault_decrypt_secret (migration 0099). Vive
+  // primariamente no banco (GUC app.brighter_vault_key ou
+  // private.app_secrets), nunca em `.env` de produção; declarada aqui só
+  // como fallback opcional de dev/teste local (mesmo padrão de
+  // NUVEMSHOP_OAUTH_ENCRYPTION_KEY acima). Nunca commitar valor real.
+  BRIGHTER_VAULT_ENCRYPTION_KEY: z.string().optional().default(""),
+
   // App URLs
   NEXT_PUBLIC_APP_URL: z
     .string()

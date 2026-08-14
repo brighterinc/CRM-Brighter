@@ -38,6 +38,7 @@
     "control:persistence": "tsx scripts/control-plane-persistence-summary.ts",
     "credentials:runtime": "tsx scripts/credentials-runtime-summary.ts",
     "supabase:adapter": "tsx scripts/supabase-real-adapter-cli.ts",
+    "vault:simulate": "tsx scripts/vault-backend-simulate.ts",
     "gov:verify": "pnpm typecheck && pnpm lint && pnpm lint:channels && pnpm test:unit",
     "worker": "tsx --env-file=.env --env-file=.env.local workers/agent-worker/main.ts",
     "flywheel:judge": "tsx --env-file=.env --env-file=.env.local scripts/flywheel-judge-live.ts"

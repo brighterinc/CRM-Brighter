@@ -308,45 +308,64 @@ admin UI read-only (`/app/settings/control-plane/providers/supabase`).
 `lib/provisioning-adapters/providers/supabase-real*.ts`. Ver
 `docs/providers/supabase/overview.md`.
 
+**Vault Backend Real** — primeiro backend REAL do Credentials Vault
+(`vault_provider: "postgres_pgcrypto"`), plugado no `RuntimeVaultProvider`
+que faltava desde o Provider Credentials Runtime (acima). Tabela nova
+`control_plane_secret_ciphertexts` (ENCRYPTED SECRET PAYLOAD, uma linha por
+versão, SEPARADA de `control_plane_secret_references` que continua metadata
+pública) — RLS ligada com ZERO policies (nem platform-admin, mesmo padrão de
+`system_version`). Funções `SECURITY DEFINER` próprias
+`fn_vault_encrypt_secret`/`fn_vault_decrypt_secret` (`pgp_sym_encrypt`/
+`pgp_sym_decrypt`, chave em `private.fn_vault_key()` — GUC
+`app.brighter_vault_key` com fallback em `private.app_secrets`) — nunca
+reusa `fn_encrypt_oauth`/`fn_decrypt_oauth` do Nuvemshop, embora reuse a
+tabela/schema `private.app_secrets` genérica (linha e função leitora
+distintas). Rotação nunca sobrescreve (`fn_vault_write_secret_version`
+supersede a ativa e insere versão nova, serializado via `SELECT ... FOR
+UPDATE` na reference pai + unique index parcial). TS:
+`lib/control-plane-persistence/vault/{encryption,encryption-fake,
+encryption-pgcrypto,secret-payload,secret-payload-database,
+secret-value-service,vault-gate,errors,factory}.ts` +
+`lib/provider-credentials-runtime/providers/postgres-pgcrypto.ts` (novo
+`RuntimeVaultProvider`, nunca no registry default — mesmo precedente do
+Real Supabase Adapter). 54 testes unitários (`tests/unit/
+vault-backend-*.test.ts`), CLI 100% simulado (`pnpm vault:simulate`).
+Migration `0099_real_vault_backend` — **criada e revisada, NÃO aplicada** a
+nenhum banco real (nem `supabase db push`, nem MCP `apply_migration`, nem
+Postgres efêmero); validação `pnpm test:db` (install+update em
+`pgvector/pgvector:pg17`) segue pendente até a etapa de aplicação da
+migration. Ver `docs/vault-backend/overview.md`.
+
 ### Próximos
 
-1. **Vault Backend Real** — um `RuntimeVaultProvider` REAL plugado no
-   `RuntimeVaultProviderRegistry` já existente (candidato: Postgres
-   `pgp_sym_encrypt`, mesmo padrão do OAuth do Nuvemshop,
-   `fn_encrypt_oauth`/`fn_decrypt_oauth` — mas com tabela de ciphertext
-   SEPARADA de `control_plane_secret_references` e função `SECURITY
-   DEFINER` própria, nunca reusando as do Nuvemshop). O Real Supabase
-   Adapter (acima) ainda resolve credencial via vault provider de
-   teste/simulação — sem isto, `REAL_PROVISIONING_ENABLED=true` não tem
-   token de verdade pra usar.
-2. **Real Vercel Adapter** — mesmo padrão do Real Supabase Adapter, pra
+1. **Real Vercel Adapter** — mesmo padrão do Real Supabase Adapter, pra
    `vercel`.
-3. **DNS Provider Adapter** — idem, pra `dns` (e `configure_ssl`).
-4. **Provisioning Runtime** — orquestra os adapters reais acima dentro do
+2. **DNS Provider Adapter** — idem, pra `dns` (e `configure_ssl`).
+3. **Provisioning Runtime** — orquestra os adapters reais acima dentro do
    `ProvisioningPlan` já persistido, executando de fato as etapas hoje só
    dry-run/simuladas.
-5. **Monitoring Runtime** — persistência real de `MonitoringSnapshot`/
+4. **Monitoring Runtime** — persistência real de `MonitoringSnapshot`/
    `MonitoringIncident` + adaptadores reais de `MonitoringAdapter` (ping
    HTTP, DNS, SSL, Supabase, Redis, WAHA), plugados no motor já existente em
    `lib/monitoring/` sem mudar sua interface.
-6. **Billing Runtime** — persistência real de `BillingSubscription`/
+5. **Billing Runtime** — persistência real de `BillingSubscription`/
    `BillingInvoice` + adaptadores reais de `BillingProviderAdapter`
    (InfinitePay/Stripe/Mercado Pago/Pix/boleto), plugados em
    `lib/billing/adapters.ts` sem mudar sua interface.
-7. **Outreach Runtime** — adapta `OutreachChannelAdapter`/
+6. **Outreach Runtime** — adapta `OutreachChannelAdapter`/
    `ResponseClassifier`/`ResponseDraftGenerator` reais (WAHA/Meta Cloud/
    SMTP/SMS, Vercel AI Gateway) plugados nas interfaces já existentes em
    `lib/outreach/adapters.ts`, mais persistência real de `OutreachCampaign`/
    `OutreachCadence`/`OutreachEnrollment`.
-8. **Worker/Scheduler Runtime** — infraestrutura de execução assíncrona
+7. **Worker/Scheduler Runtime** — infraestrutura de execução assíncrona
    (`event_log` + cron, doutrina já existente do CLAUDE.md) pra rodar
    provisionamento/automação/outreach de verdade fora do request-response.
-9. **Automated Client Onboarding** — fluxo ponta a ponta que efetivamente
+8. **Automated Client Onboarding** — fluxo ponta a ponta que efetivamente
     cria uma instalação nova, orquestrando os services de
     `lib/control-plane-persistence/services.ts` sobre os runtimes reais
     acima.
 
-Não implementados agora (itens 1-10 acima são só o roadmap ordenado).
+Não implementados agora (itens 1-8 acima são só o roadmap ordenado).
 Cross-cutting que continua pendente, sem item numerado próprio: observabilidade/
 auditoria real de execução (hoje só a trilha de `control_plane_operation_events`
 sobre as MUTAÇÕES de persistência, não sobre execução real de infra),

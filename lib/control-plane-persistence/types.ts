@@ -110,10 +110,15 @@ export type SecretReferenceStatus = "pending" | "active" | "rotated" | "revoked"
 
 export const SECRET_REFERENCE_STATUSES: SecretReferenceStatus[] = ["pending", "active", "rotated", "revoked"];
 
-/** Backend que de fato guarda o valor do segredo — nesta fase, nenhum guarda valor real. */
-export type VaultProvider = "noop" | "in_memory" | "database_placeholder";
+/**
+ * Backend que de fato guarda o valor do segredo. `"postgres_pgcrypto"` é o
+ * PRIMEIRO backend real desta vocabulário (Real Vault Backend — ver
+ * `lib/control-plane-persistence/vault/encryption-pgcrypto.ts`); os outros
+ * três continuam sem guardar valor de verdade.
+ */
+export type VaultProvider = "noop" | "in_memory" | "database_placeholder" | "postgres_pgcrypto";
 
-export const VAULT_PROVIDERS: VaultProvider[] = ["noop", "in_memory", "database_placeholder"];
+export const VAULT_PROVIDERS: VaultProvider[] = ["noop", "in_memory", "database_placeholder", "postgres_pgcrypto"];
 
 /** `"platform"` cobre segredo que não é de um provider de instalação específico (ex.: SMTP compartilhado da Brighter). */
 export type SecretReferenceProvider = ProvisioningProvider | "platform";
@@ -143,6 +148,8 @@ export type SecretReferenceMetadata = {
   rotatedAt?: string;
   /** ISO-8601 UTC. */
   revokedAt?: string;
+  /** ISO-8601 UTC — última vez que um `RuntimeVaultProvider` resolveu o VALOR desta reference com sucesso. Bump via `SecretUsageRecorder.recordUsage` (`vault/types.ts`), nunca via `CredentialsVault` (que é metadata-write, não runtime). */
+  lastUsedAt?: string;
 };
 
 export type OperationEventSeverity = "info" | "warning" | "error" | "success";
@@ -178,6 +185,12 @@ export const CONTROL_PLANE_OPERATION_EVENT_TYPES = [
   "provider_operation.completed",
   "provider_operation.failed",
   "provider_operation.blocked",
+  // Real Vault Backend (lib/control-plane-persistence/vault/secret-value-service.ts)
+  // — ciclo de vida do CIPHERTEXT (nunca do plaintext), separado do ciclo de
+  // vida da metadata (secret_reference.* acima).
+  "secret_value.stored",
+  "secret_value.rotated",
+  "secret_value.revoked",
 ] as const;
 
 export type PersistedOperationEvent = {

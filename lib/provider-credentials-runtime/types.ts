@@ -62,7 +62,7 @@ export const CREDENTIAL_LEASE_STATUSES = [
 ] as const;
 export type CredentialLeaseStatus = (typeof CREDENTIAL_LEASE_STATUSES)[number];
 
-export const RUNTIME_VAULT_PROVIDER_IDS = ["noop", "in_memory", "environment"] as const;
+export const RUNTIME_VAULT_PROVIDER_IDS = ["noop", "in_memory", "environment", "postgres_pgcrypto"] as const;
 export type RuntimeVaultProviderId = (typeof RUNTIME_VAULT_PROVIDER_IDS)[number];
 
 /**

@@ -10,7 +10,7 @@ audited_against: origin/main @ 789dfa6 (v1.0.0, 2026-07-27)
 
 # Índice da documentação — DeskcommCRM
 
-Mapa dos **194** arquivos `.md` de `docs/`, espalhados por **35** subpastas (+8 arquivos/+1 subpasta — `docs/outreach/`, adicionados com a Outreach & AI Cadence Engine Foundation v1; +9 arquivos/+1 subpasta — `docs/marketplace/`, adicionados com a Marketplace / Module Licensing Foundation v1; +8 arquivos/+1 subpasta — `docs/provisioning-adapters/`, adicionados com a Provisioning Adapters Foundation v1; +8 arquivos/+1 subpasta — `docs/providers/supabase/`, adicionados com o Real Supabase Adapter) — régua:
+Mapa dos **202** arquivos `.md` de `docs/`, espalhados por **36** subpastas (+8 arquivos/+1 subpasta — `docs/outreach/`, adicionados com a Outreach & AI Cadence Engine Foundation v1; +9 arquivos/+1 subpasta — `docs/marketplace/`, adicionados com a Marketplace / Module Licensing Foundation v1; +8 arquivos/+1 subpasta — `docs/provisioning-adapters/`, adicionados com a Provisioning Adapters Foundation v1; +8 arquivos/+1 subpasta — `docs/providers/supabase/`, adicionados com o Real Supabase Adapter; +8 arquivos/+1 subpasta — `docs/vault-backend/`, adicionados com o Real Vault Backend) — régua:
 `git ls-files 'docs/**/*.md' | wc -l`. Existe porque a documentação cresceu sem ponto
 de entrada: sem este índice, humano e agente não acham o que já foi decidido e
 reescrevem por cima.

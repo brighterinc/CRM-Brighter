@@ -199,4 +199,7 @@ export type AuditAction =
   | "control_plane.secret_reference_rotated"
   | "control_plane.secret_reference_revoked"
   | "control_plane.operation_event_recorded"
-  | "control_plane.unsafe_payload_rejected";
+  | "control_plane.unsafe_payload_rejected"
+  | "control_plane.secret_value_stored"
+  | "control_plane.secret_value_rotated"
+  | "control_plane.secret_value_revoked";

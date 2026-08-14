@@ -26,11 +26,12 @@ import {
   type CredentialsVault,
   type SecretReferenceMetadata,
   type SecretReferenceReader,
+  type SecretUsageRecorder,
 } from "./types";
 
 const TABLE = "control_plane_secret_references";
 
-export class DatabaseSecretReferenceRepository implements CredentialsVault, SecretReferenceReader {
+export class DatabaseSecretReferenceRepository implements CredentialsVault, SecretReferenceReader, SecretUsageRecorder {
   async createReference(input: CreateSecretReferenceInput): Promise<SecretReferenceMetadata> {
     assertSafePersistencePayload(input, "DatabaseSecretReferenceRepository.createReference");
     const admin = createAdminClient();
@@ -95,5 +96,12 @@ export class DatabaseSecretReferenceRepository implements CredentialsVault, Secr
       .order("created_at", { ascending: false });
     if (error) throw new Error(`[control-plane-persistence] listByInstallation failed: ${error.message}`);
     return (data as ControlPlaneSecretReferenceRow[]).map(secretReferenceRowToMetadata);
+  }
+
+  /** Fora de `CredentialsVault` de propósito (ver `SecretUsageRecorder`) — nunca lança pra id inexistente (0 linhas afetadas é um resultado válido). */
+  async recordUsage(id: string): Promise<void> {
+    const admin = createAdminClient();
+    const { error } = await admin.from(TABLE).update({ last_used_at: new Date().toISOString() }).eq("id", id);
+    if (error) throw new Error(`[control-plane-persistence] recordUsage failed: ${error.message}`);
   }
 }

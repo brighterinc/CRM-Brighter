@@ -5,6 +5,7 @@ import {
   type CredentialsVault,
   type SecretReferenceMetadata,
   type SecretReferenceReader,
+  type SecretUsageRecorder,
 } from "./types";
 
 /**
@@ -12,7 +13,7 @@ import {
  * repositories já existentes (`InMemoryTenantRepository` etc): sem tabela,
  * sem Supabase real, cada instância começa vazia, nunca singleton global.
  */
-export class InMemoryCredentialsVault implements CredentialsVault, SecretReferenceReader {
+export class InMemoryCredentialsVault implements CredentialsVault, SecretReferenceReader, SecretUsageRecorder {
   private readonly references = new Map<string, SecretReferenceMetadata>();
 
   async createReference(input: CreateSecretReferenceInput): Promise<SecretReferenceMetadata> {
@@ -70,5 +71,12 @@ export class InMemoryCredentialsVault implements CredentialsVault, SecretReferen
     return Array.from(this.references.values())
       .filter((r) => r.installationId === installationId)
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  }
+
+  /** Fora de `CredentialsVault` de propósito (ver `SecretUsageRecorder`) — nunca lança pra id inexistente. */
+  async recordUsage(id: string): Promise<void> {
+    const existing = this.references.get(id);
+    if (!existing) return;
+    this.references.set(id, { ...existing, lastUsedAt: new Date().toISOString() });
   }
 }

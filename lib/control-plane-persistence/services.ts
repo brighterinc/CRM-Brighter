@@ -334,6 +334,76 @@ export async function recordSecretReference(
 }
 
 // ---------------------------------------------------------------------------
+// rotateSecretReference / revokeSecretReference — mutação de METADATA
+// (version/status/rotatedAt/revokedAt em control_plane_secret_references).
+// NUNCA tocam ciphertext/valor — isso é `vault/secret-value-service.ts`, que
+// CHAMA estas duas funções pra metadata e o `SecretPayloadRepository`/
+// `SecretEncryptionProvider` (Real Vault Backend) pra payload, na mesma
+// operação de negócio. Existirem aqui (não só no repository) é o que
+// garante que rotação/revogação de referência SEMPRE sai auditada nos dois
+// logs, mesmo se chamada sem nunca escrever um valor novo (ex.: revogar uma
+// referência `pending` que nunca teve segredo armazenado).
+// ---------------------------------------------------------------------------
+
+export async function rotateSecretReference(
+  repos: ControlPlaneRepositories,
+  secretReferenceId: string,
+  ctx: ControlPlaneActorContext = {},
+): Promise<SecretReferenceMetadata> {
+  const secretReference = await repos.vault.rotateReference(secretReferenceId);
+
+  await emitAudit(ctx, {
+    action: "control_plane.secret_reference_rotated",
+    actorUserId: ctx.actorUserId ?? null,
+    organizationId: null,
+    resourceType: "control_plane_secret_reference",
+    resourceId: secretReference.id,
+    requestId: ctx.requestId,
+    metadata: { type: secretReference.type, provider: secretReference.provider, version: secretReference.version },
+  });
+  await emitOperationEvent(repos, {
+    installationId: secretReference.installationId,
+    tenantId: secretReference.tenantId,
+    eventType: "secret_reference.rotated",
+    severity: "success",
+    message: `Referência de segredo "${secretReference.reference}" rotacionada — versão ${secretReference.version}.`,
+    metadata: { type: secretReference.type, provider: secretReference.provider, version: secretReference.version },
+    actorUserId: ctx.actorUserId ?? null,
+  });
+
+  return secretReference;
+}
+
+export async function revokeSecretReference(
+  repos: ControlPlaneRepositories,
+  secretReferenceId: string,
+  ctx: ControlPlaneActorContext = {},
+): Promise<SecretReferenceMetadata> {
+  const secretReference = await repos.vault.revokeReference(secretReferenceId);
+
+  await emitAudit(ctx, {
+    action: "control_plane.secret_reference_revoked",
+    actorUserId: ctx.actorUserId ?? null,
+    organizationId: null,
+    resourceType: "control_plane_secret_reference",
+    resourceId: secretReference.id,
+    requestId: ctx.requestId,
+    metadata: { type: secretReference.type, provider: secretReference.provider },
+  });
+  await emitOperationEvent(repos, {
+    installationId: secretReference.installationId,
+    tenantId: secretReference.tenantId,
+    eventType: "secret_reference.revoked",
+    severity: "warning",
+    message: `Referência de segredo "${secretReference.reference}" revogada.`,
+    metadata: { type: secretReference.type, provider: secretReference.provider },
+    actorUserId: ctx.actorUserId ?? null,
+  });
+
+  return secretReference;
+}
+
+// ---------------------------------------------------------------------------
 // recordOperationEvent — para eventos que não nascem de uma das 6 mutações
 // acima (ex.: transição de status observada por um worker futuro).
 // ---------------------------------------------------------------------------
