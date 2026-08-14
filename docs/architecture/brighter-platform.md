@@ -215,26 +215,46 @@ last_updated: 2026-08-13
 │  lib/provider-credentials-runtime/. Ver                            │
 │  docs/provider-credentials-runtime/overview.md.                    │
 └─────────────────────────────────────────────────────────────────┘
+                              ↓ primeiro provider real implementado
+┌─────────────────────────────────────────────────────────────────┐
+│  Real Supabase Adapter                    (concluído — v1, parcial) │
+│  Primeiro provider REAL da Provisioning Adapters. 8 operações      │
+│  classificadas REAL_SUPPORTED (project.validate/read/status — só   │
+│  essas de fato chamam a Supabase Management API)/DRY_RUN_ONLY      │
+│  (project.create — request preparado/validado, NUNCA executado     │
+│  nesta etapa)/PLANNED (database.prepare/auth.configure/            │
+│  storage.prepare/edge_functions.prepare). Gate                     │
+│  `REAL_PROVISIONING_ENABLED` (default `false`) + a classificação   │
+│  por operação são duas camadas independentes de bloqueio. Usa o    │
+│  boundary da Provider Credentials Runtime acima pra pegar          │
+│  credencial (nunca lê `vault_key` direto); emite eventos           │
+│  `provider_operation.*` na Control Plane Persistence. NÃO          │
+│  registrado no registry default (`createDefaultProvisioningAdapter │
+│  Registry()`) — esse continua seguro de importar sem tocar env/    │
+│  rede; quem quer o adapter real monta a própria instância via      │
+│  `createRealSupabaseProvisioningAdapter(deps)`.                    │
+│  lib/provisioning-adapters/providers/supabase-real*.ts. Ver        │
+│  docs/providers/supabase/overview.md.                              │
+└─────────────────────────────────────────────────────────────────┘
                               ↓ (futuro)
 ┌─────────────────────────────────────────────────────────────────┐
-│  Real Provider Adapters + Real Vault Backend              (futuro) │
-│  Implementações REAIS de `ProvisioningProviderAdapter`            │
-│  (Supabase/Vercel/VPS/DNS/Caddy/Docker/Redis/WhatsApp-WAHA-       │
-│  Evolution-Chatwoot/e-mail) plugadas no registry já existente em   │
-│  `lib/provisioning-adapters/` sem mudar sua interface, usando o    │
-│  boundary da Provider Credentials Runtime acima pra pegar          │
-│  credencial; um `RuntimeVaultProvider` real (ex.: Postgres         │
+│  Demais Real Provider Adapters + Real Vault Backend        (futuro) │
+│  Implementações REAIS de `ProvisioningProviderAdapter` pros        │
+│  demais providers (Vercel/VPS/DNS/Caddy/Docker/Redis/WhatsApp-     │
+│  WAHA-Evolution-Chatwoot/e-mail), mesmo padrão do Real Supabase    │
+│  Adapter acima; um `RuntimeVaultProvider` real (ex.: Postgres      │
 │  `pgp_sym_encrypt`, mesmo padrão do OAuth do Nuvemshop) por trás   │
-│  do Credentials Vault já persistido; persistência real de          │
-│  `MonitoringSnapshot`/`MonitoringIncident`/`BillingSubscription`/   │
-│  `BillingInvoice`, e de pagamento (InfinitePay/Stripe/Mercado       │
-│  Pago) que de fato executam o `ProvisioningPlan`/os checks de       │
-│  monitoramento/a cobrança. Por doutrina, CONSOME as camadas de      │
-│  domínio já existentes (tipos, validação, readiness, planner,       │
-│  executor, evaluator, `InstallationRepository`/                     │
-│  `MonitoringRepository`/`BillingRepository`/                        │
-│  `ProvisioningAdapterRepository`), nunca as substitui. Ver          │
-│  ROADMAP.md.                                                        │
+│  do Credentials Vault já persistido (o Real Supabase Adapter ainda │
+│  resolve credencial via vault provider de teste/simulação);        │
+│  persistência real de `MonitoringSnapshot`/`MonitoringIncident`/    │
+│  `BillingSubscription`/`BillingInvoice`, e de pagamento             │
+│  (InfinitePay/Stripe/Mercado Pago) que de fato executam o           │
+│  `ProvisioningPlan`/os checks de monitoramento/a cobrança. Por      │
+│  doutrina, CONSOME as camadas de domínio já existentes (tipos,      │
+│  validação, readiness, planner, executor, evaluator,                │
+│  `InstallationRepository`/`MonitoringRepository`/                   │
+│  `BillingRepository`/`ProvisioningAdapterRepository`), nunca as     │
+│  substitui. Ver ROADMAP.md.                                         │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -330,3 +350,4 @@ o que referenciar além do valor em si.
 | Provisioning Adapters Engine | `lib/provisioning-adapters/`, `app/app/settings/provisioning-adapters/`, `scripts/generate-provisioning-adapters-summary.ts` | `docs/provisioning-adapters/overview.md`, `docs/provisioning-adapters/provider-contract.md`, `docs/provisioning-adapters/capabilities.md`, `docs/provisioning-adapters/dry-run.md`, `docs/provisioning-adapters/rollback.md`, `docs/provisioning-adapters/security.md`, `docs/provisioning-adapters/providers.md`, `docs/provisioning-adapters/simulation.md` |
 | Control Plane Persistence + Credentials Vault | `lib/control-plane-persistence/`, `app/app/settings/control-plane/persistence/`, `scripts/control-plane-persistence-summary.ts`, `supabase/migrations/20260811000000_0098_control_plane_persistence.sql` | `docs/control-plane-persistence/overview.md`, `docs/control-plane-persistence/schema.md`, `docs/control-plane-persistence/security.md`, `docs/control-plane-persistence/credentials-vault.md`, `docs/control-plane-persistence/repositories.md`, `docs/control-plane-persistence/rls.md`, `docs/control-plane-persistence/migration.md`, `docs/control-plane-persistence/runtime-boundary.md` |
 | Provider Credentials Runtime | `lib/provider-credentials-runtime/`, `app/app/settings/control-plane/credentials-runtime/`, `scripts/credentials-runtime-summary.ts` | `docs/provider-credentials-runtime/overview.md`, `docs/provider-credentials-runtime/security.md`, `docs/provider-credentials-runtime/leases.md`, `docs/provider-credentials-runtime/policies.md`, `docs/provider-credentials-runtime/vault-providers.md`, `docs/provider-credentials-runtime/adapter-integration.md`, `docs/provider-credentials-runtime/runtime-boundary.md`, `docs/provider-credentials-runtime/simulation.md` |
+| Real Supabase Adapter | `lib/provisioning-adapters/providers/supabase-real*.ts`, `lib/provisioning-adapters/providers/supabase-{client,api,mapper,errors,validation}.ts`, `app/app/settings/control-plane/providers/supabase/`, `scripts/supabase-real-adapter-cli.ts` | `docs/providers/supabase/overview.md`, `docs/providers/supabase/security.md`, `docs/providers/supabase/credentials.md`, `docs/providers/supabase/operations.md`, `docs/providers/supabase/dry-run.md`, `docs/providers/supabase/errors.md`, `docs/providers/supabase/rollback.md`, `docs/providers/supabase/smoke-test.md` |

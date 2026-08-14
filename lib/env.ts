@@ -139,6 +139,18 @@ const schema = z.object({
     .default("false")
     .transform((v) => v === "true"),
 
+  // Brighter Provisioning — gate de execução REAL (hoje só o Real Supabase
+  // Adapter, lib/provisioning-adapters/providers/supabase-real-gate.ts).
+  // Declarado aqui só pra documentação/boot da app — o adapter lê
+  // `process.env.REAL_PROVISIONING_ENABLED` direto (nunca importa este
+  // módulo no caminho quente, mesmo cuidado já documentado em
+  // control-plane-persistence/services.ts pra CLI/teste sem `.env`).
+  REAL_PROVISIONING_ENABLED: z
+    .enum(["true", "false"])
+    .optional()
+    .default("false")
+    .transform((v) => v === "true"),
+
   // App URLs
   NEXT_PUBLIC_APP_URL: z
     .string()

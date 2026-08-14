@@ -10,7 +10,7 @@ audited_against: origin/main @ 789dfa6 (v1.0.0, 2026-07-27)
 
 # Índice da documentação — DeskcommCRM
 
-Mapa dos **135** arquivos `.md` de `docs/`, espalhados por **25** subpastas (+8 arquivos/+1 subpasta — `docs/outreach/`, adicionados com a Outreach & AI Cadence Engine Foundation v1; +9 arquivos/+1 subpasta — `docs/marketplace/`, adicionados com a Marketplace / Module Licensing Foundation v1; +8 arquivos/+1 subpasta — `docs/provisioning-adapters/`, adicionados com a Provisioning Adapters Foundation v1) — régua:
+Mapa dos **194** arquivos `.md` de `docs/`, espalhados por **35** subpastas (+8 arquivos/+1 subpasta — `docs/outreach/`, adicionados com a Outreach & AI Cadence Engine Foundation v1; +9 arquivos/+1 subpasta — `docs/marketplace/`, adicionados com a Marketplace / Module Licensing Foundation v1; +8 arquivos/+1 subpasta — `docs/provisioning-adapters/`, adicionados com a Provisioning Adapters Foundation v1; +8 arquivos/+1 subpasta — `docs/providers/supabase/`, adicionados com o Real Supabase Adapter) — régua:
 `git ls-files 'docs/**/*.md' | wc -l`. Existe porque a documentação cresceu sem ponto
 de entrada: sem este índice, humano e agente não acham o que já foi decidido e
 reescrevem por cima.
@@ -147,6 +147,14 @@ Detalham schema SQL e payloads exatos. **Consulte antes de modelar qualquer cois
 | [`provider-credentials-runtime/adapter-integration.md`](provider-credentials-runtime/adapter-integration.md) | `requiredCredentialPurpose`/`requiredSecretType` em `ProvisioningAdapterCapability`, por que são `string` solto, `resolveCredentialRequirementForAdapter` |
 | [`provider-credentials-runtime/runtime-boundary.md`](provider-credentials-runtime/runtime-boundary.md) | `withProviderCredential` como chokepoint único, o que muda quando o vault/adapter real existir, pendências cross-cutting |
 | [`provider-credentials-runtime/simulation.md`](provider-credentials-runtime/simulation.md) | Os 11 cenários de `pnpm credentials:runtime`, o que cada um prova, `release-on-error` como único outcome esperado `"error"` |
+| [`providers/supabase/overview.md`](providers/supabase/overview.md) | **Real Supabase Adapter** — primeiro provider real da Provisioning Adapters. As 8 operações, classificação REAL_SUPPORTED/DRY_RUN_ONLY/PLANNED, onde vive (não registrado no registry default) |
+| [`providers/supabase/security.md`](providers/supabase/security.md) | Gate `REAL_PROVISIONING_ENABLED` (default `false`), boundary de credencial, nunca logado/retornado, retry só em erro seguro |
+| [`providers/supabase/credentials.md`](providers/supabase/credentials.md) | `requiredCredentialPurpose`/`requiredSecretType` por operação, `resolveCredentialRequirementForSupabaseRealOperation` |
+| [`providers/supabase/operations.md`](providers/supabase/operations.md) | Detalhe de cada uma das 8 operações — endpoint lógico, input exigido, o que de fato executa |
+| [`providers/supabase/dry-run.md`](providers/supabase/dry-run.md) | `dryRunSupabaseRealOperation` — shape completo, nunca I/O, funciona com gate desligado |
+| [`providers/supabase/errors.md`](providers/supabase/errors.md) | Os 10 erros estruturados, mapeamento HTTP→erro, quais são retryable |
+| [`providers/supabase/rollback.md`](providers/supabase/rollback.md) | Rollback preview — só `project.create` é reversível (teórico), nunca executado |
+| [`providers/supabase/smoke-test.md`](providers/supabase/smoke-test.md) | Desenho de um smoke test real futuro — documentação apenas, nada implementado/executado nesta etapa |
 
 ## 5. Design system
 

@@ -279,6 +279,35 @@ vault real nem executa nenhum provider real — orquestra só o BOUNDARY que
 um vault/provider real vai usar depois. `lib/provider-credentials-runtime/`.
 Ver `docs/provider-credentials-runtime/overview.md`.
 
+**Real Supabase Adapter** — primeiro provider REAL da Provisioning Adapters.
+8 operações (`project.validate`/`project.create`/`project.read`/
+`project.status`/`database.prepare`/`auth.configure`/`storage.prepare`/
+`edge_functions.prepare`), classificadas `REAL_SUPPORTED` (só
+`project.validate`/`project.read`/`project.status` de fato chamam a
+Supabase Management API), `DRY_RUN_ONLY` (`project.create` — request
+preparado/validado, NUNCA executado nesta etapa, mesmo com o gate ligado)
+ou `PLANNED` (as 4 de configuração, reservadas). Gate
+`REAL_PROVISIONING_ENABLED` (default `false`, lido direto de `process.env`
+pra não acoplar CLI/teste a `lib/env.ts`) — duas camadas independentes de
+bloqueio junto com a classificação por operação. Cliente HTTP mínimo
+(`SupabaseManagementClient`, timeout via `AbortController`, nunca loga
+`Authorization`/body), retry só em timeout/429/5xx-selecionado (nunca em
+400/401/403/404/409), chave de idempotência (hash de tenant/installation/
+operation/input sanitizado, nunca credencial), rollback preview (só
+`project.create` é teoricamente reversível — nunca executado). Usa
+`withProviderCredential()` (Provider Credentials Runtime, acima) — nunca lê
+`vault_key` direto; emite eventos `provider_operation.*` na Control Plane
+Persistence (vocabulário aberto, sem migration). Implementa o mesmo
+contrato `ProvisioningProviderAdapter` do blueprint dry-run, mas NÃO
+registrado no registry default (`createDefaultProvisioningAdapterRegistry()`)
+— esse continua seguro de importar sem tocar env/rede; quem quer o adapter
+real monta a própria instância via `createRealSupabaseProvisioningAdapter(deps)`.
+40 testes unitários (`tests/unit/supabase-real-adapter-*.test.ts`, `fetch`
+mockado, nenhuma chamada real), CLI 100% mockado (`pnpm supabase:adapter`),
+admin UI read-only (`/app/settings/control-plane/providers/supabase`).
+`lib/provisioning-adapters/providers/supabase-real*.ts`. Ver
+`docs/providers/supabase/overview.md`.
+
 ### Próximos
 
 1. **Vault Backend Real** — um `RuntimeVaultProvider` REAL plugado no
@@ -286,34 +315,33 @@ Ver `docs/provider-credentials-runtime/overview.md`.
    `pgp_sym_encrypt`, mesmo padrão do OAuth do Nuvemshop,
    `fn_encrypt_oauth`/`fn_decrypt_oauth` — mas com tabela de ciphertext
    SEPARADA de `control_plane_secret_references` e função `SECURITY
-   DEFINER` própria, nunca reusando as do Nuvemshop).
-2. **Real Supabase Adapter** — implementação de verdade de
-   `ProvisioningProviderAdapter` pra `supabase`, plugada no registry já
-   existente em `lib/provisioning-adapters/` sem mudar sua interface,
-   usando `withProviderCredential` (Provider Credentials Runtime, acima)
-   pra pegar credencial.
-3. **Real Vercel Adapter** — idem, pra `vercel`.
-4. **DNS Provider Adapter** — idem, pra `dns` (e `configure_ssl`).
-5. **Provisioning Runtime** — orquestra os adapters reais acima dentro do
+   DEFINER` própria, nunca reusando as do Nuvemshop). O Real Supabase
+   Adapter (acima) ainda resolve credencial via vault provider de
+   teste/simulação — sem isto, `REAL_PROVISIONING_ENABLED=true` não tem
+   token de verdade pra usar.
+2. **Real Vercel Adapter** — mesmo padrão do Real Supabase Adapter, pra
+   `vercel`.
+3. **DNS Provider Adapter** — idem, pra `dns` (e `configure_ssl`).
+4. **Provisioning Runtime** — orquestra os adapters reais acima dentro do
    `ProvisioningPlan` já persistido, executando de fato as etapas hoje só
    dry-run/simuladas.
-6. **Monitoring Runtime** — persistência real de `MonitoringSnapshot`/
+5. **Monitoring Runtime** — persistência real de `MonitoringSnapshot`/
    `MonitoringIncident` + adaptadores reais de `MonitoringAdapter` (ping
    HTTP, DNS, SSL, Supabase, Redis, WAHA), plugados no motor já existente em
    `lib/monitoring/` sem mudar sua interface.
-7. **Billing Runtime** — persistência real de `BillingSubscription`/
+6. **Billing Runtime** — persistência real de `BillingSubscription`/
    `BillingInvoice` + adaptadores reais de `BillingProviderAdapter`
    (InfinitePay/Stripe/Mercado Pago/Pix/boleto), plugados em
    `lib/billing/adapters.ts` sem mudar sua interface.
-8. **Outreach Runtime** — adapta `OutreachChannelAdapter`/
+7. **Outreach Runtime** — adapta `OutreachChannelAdapter`/
    `ResponseClassifier`/`ResponseDraftGenerator` reais (WAHA/Meta Cloud/
    SMTP/SMS, Vercel AI Gateway) plugados nas interfaces já existentes em
    `lib/outreach/adapters.ts`, mais persistência real de `OutreachCampaign`/
    `OutreachCadence`/`OutreachEnrollment`.
-9. **Worker/Scheduler Runtime** — infraestrutura de execução assíncrona
+8. **Worker/Scheduler Runtime** — infraestrutura de execução assíncrona
    (`event_log` + cron, doutrina já existente do CLAUDE.md) pra rodar
    provisionamento/automação/outreach de verdade fora do request-response.
-10. **Automated Client Onboarding** — fluxo ponta a ponta que efetivamente
+9. **Automated Client Onboarding** — fluxo ponta a ponta que efetivamente
     cria uma instalação nova, orquestrando os services de
     `lib/control-plane-persistence/services.ts` sobre os runtimes reais
     acima.

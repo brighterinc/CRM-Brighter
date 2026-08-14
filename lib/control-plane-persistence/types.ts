@@ -170,6 +170,14 @@ export const CONTROL_PLANE_OPERATION_EVENT_TYPES = [
   "secret_reference.created",
   "secret_reference.rotated",
   "secret_reference.revoked",
+  // Real Supabase Adapter (lib/provisioning-adapters/providers/supabase-real*.ts)
+  // — ciclo de vida de UMA chamada de operação real de provider, nunca
+  // carrega credencial (ver supabase-real-control-plane.ts).
+  "provider_operation.requested",
+  "provider_operation.started",
+  "provider_operation.completed",
+  "provider_operation.failed",
+  "provider_operation.blocked",
 ] as const;
 
 export type PersistedOperationEvent = {

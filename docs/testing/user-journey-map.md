@@ -403,6 +403,40 @@ até a migration ser aplicada e um banco de teste com fixtures reais existir.
 
 ---
 
+## J19 — Configurações › Control Plane (Provider — Supabase, Real Adapter) `[P2]`
+
+Contexto do código: tela somente leitura, **platform-admin only**
+(`app/app/settings/control-plane/providers/supabase/page.tsx`, mesmo guard
+`requirePlatformAdmin()` de J17/J18), lê `createControlPlaneRepositories("database")`
+filtrado pro provider `"supabase"` + o catálogo estático de 8 operações
+(`SUPABASE_REAL_OPERATION_CATALOG`) + o gate `REAL_PROVISIONING_ENABLED`.
+`[P2]`: tela de diagnóstico interno da Brighter, não do dia a dia de um
+tenant. Sem botão de execução real, sem input de credencial, nunca mostra
+token/valor de segredo.
+
+**NÃO EXECUTADO NESTA SESSÃO via Playwright** — mesma razão de J17/J18:
+migration `0098` (que a página depende via `mode: "database"`) ainda não foi
+aplicada a nenhum banco. Coberto via `renderToStaticMarkup` com repos
+mockados (`tests/unit/supabase-provider-page.test.tsx`, 4 casos) e via CLI
+100% mockado (`pnpm supabase:adapter -- --scenario all`, 9 cenários) — ambos
+executados e passando nesta sessão. Registrado aqui como cobertura
+Playwright PLANEJADA, pendente até a migration ser aplicada e um banco de
+teste com fixtures reais existir.
+
+| # | Caso | Expectativa |
+|---|------|-------------|
+| J19.1 | Admin de tenant (sem `platform_admins`) acessa `/app/settings/control-plane/providers/supabase` | bloqueado — redirect `/admin/forbidden` |
+| J19.2 | Platform-admin sem MFA AAL2 acessa a rota | redirect `/login/mfa?next=/admin` |
+| J19.3 | Platform-admin autenticado (AAL2) acessa a rota | tela carrega com gate/readiness + tabela das 8 operações (classificação REAL_SUPPORTED/DRY_RUN_ONLY/PLANNED) |
+| J19.4 | Banco sem nenhuma installation/conexão Supabase ainda | estado vazio explícito ("Nenhuma instalação persistida ainda" / "Nenhuma conexão Supabase registrada"), nunca tela quebrada |
+| J19.5 | Installation com secret reference Supabase cujo `vaultKey` tem valor sensível | `vaultKey`/valor **nunca** aparece em nenhuma célula/atributo/tooltip da página renderizada |
+| J19.6 | `REAL_PROVISIONING_ENABLED` ausente vs. `"true"` | badge do gate mostra "desligado (default)" vs. "ligado" corretamente |
+| J19.7 | `pnpm supabase:adapter -- --scenario all` rodado localmente | todos os 9 cenários batem o outcome esperado (`ok`/`blocked`, nunca `error`), sem chamar rede real |
+| J19.8 | `pnpm supabase:adapter -- --scenario gate-disabled` | bloqueia com `RealProvisioningDisabledError`, mesmo com credencial fake válida |
+| J19.9 | `pnpm supabase:adapter -- --scenario project-found --format json` | JSON válido, `output` mapeado do projeto fake, nenhum token em nenhum campo |
+
+---
+
 ## Achados do mapeamento (pré-execução) — candidatos a correção
 
 | ID | Achado | Origem | Severidade |

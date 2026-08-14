@@ -88,6 +88,10 @@ export default async function ProviderCredentialsRuntimePage() {
           Ver também{" "}
           <Link href="/app/settings/control-plane/persistence" className="underline">
             Control Plane — Persistência
+          </Link>{" "}
+          e{" "}
+          <Link href="/app/settings/control-plane/providers/supabase" className="underline">
+            Provider — Supabase (Real Adapter)
           </Link>
           .
         </p>
